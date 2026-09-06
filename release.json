@@ -1,6 +1,6 @@
 {
   "version": "0.1.0",
-  "release_status": "release_candidate",
+  "release_status": "release_candidate_ci_passed",
   "release_date": "2026-09-06",
   "artifact_status": "verified_six_branch_exclusion",
   "supported_claim": "Exact residual set-cover dual certificates exclude six named branches in the complete 38-branch normalized third-center partition for the size-at-most-16 ternary covering problem K_3(6,2). The certified frontier has 32 unresolved branches.",
@@ -8,7 +8,7 @@
   "new_result_status": "six_exact_normalized_branch_exclusions",
   "artifact_reproducibility_ready": true,
   "artifact_release_ready": true,
-  "technical_report_release_status": "release_candidate",
+  "technical_report_release_status": "release_candidate_ci_passed",
   "external_review_status": "No external mathematical review is claimed.",
   "technical_report": {
     "title": "Six Certified Branch Exclusions for the Ternary Covering Problem K_3(6,2)",
@@ -41,7 +41,16 @@
     "canonical_certificate_tables_match": true,
     "production_generator_branch_sets_match": true,
     "mutation_tests_pass": true,
-    "pdf_pages_reviewed": 8
+    "pdf_pages_reviewed": 8,
+    "private_release_candidate_ci": {
+      "run_id": 34022368512,
+      "commit": "141f26d35b97cbbbeaa737348c0473cf1d0e7683",
+      "status": "success",
+      "hosted_pdf_size": 321190,
+      "hosted_pdf_sha256": "2695f390d99f5164bf2fcb4cd73e24d79c133500d9012bbd205382989040a40d",
+      "source_size": 9131,
+      "source_sha256": "0ad4c0a0fd44c9714f3123673bad13cbc60cebde4569b1073edf304458f42974"
+    }
   },
   "limitations": [
     "No 15-word or 16-word covering code is constructed.",
