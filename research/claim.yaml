@@ -14,10 +14,14 @@ current_claims:
   - independent_exact_verifier_implemented
   - known_17_word_code_replayed_as_regression_fixture
   - construction_search_and_cnf_generation_implemented
+  - exact_recursive_stabilizer_orbit_partition_implemented
+  - proven_symbol_count_and_projection_capacity_cuts_implemented
+  - resumable_fingerprinted_solver_campaign_implemented
 not_claimed:
   - existence_of_16_word_code
   - nonexistence_of_16_word_code
   - exact_value_of_K_3_6_2
+  - certified_unsat_from_solver_exit_status
 evidence_policy:
   construction:
     - direct_exhaustive_coverage_check
@@ -27,4 +31,3 @@ evidence_policy:
     - proof_log_per_case
     - independent_proof_replay
     - artifact_hash_manifest
-

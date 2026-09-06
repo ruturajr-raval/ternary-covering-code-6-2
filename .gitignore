@@ -2,9 +2,9 @@
 .tools/
 build/
 dist/
+research-results/
 search-results/
 *.cnf
 *.drat
 *.lrat
 *.log
-

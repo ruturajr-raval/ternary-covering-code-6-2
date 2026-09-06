@@ -14,7 +14,7 @@ jobs="${4:-8}"
 root="$(cd "$(dirname "$0")/.." && pwd)"
 generator="$root/build/generate_cnf"
 solver="$root/.tools/cadical/build/cadical"
-case_root="$root/build/fourth-cases/w${weight}_o${third}"
+case_root="$root/research-results/fourth-cases/w${weight}_o${third}"
 
 if [[ ! -x "$generator" ]]; then
   echo "missing generator: run make first" >&2
@@ -57,9 +57,9 @@ run_case() {
 
   local outcome="ERROR"
   if grep -q '^s SATISFIABLE' "$log"; then
-    outcome="SAT"
+    outcome="SOLVER_SAT"
   elif grep -q '^s UNSATISFIABLE' "$log"; then
-    outcome="UNSAT"
+    outcome="SOLVER_UNSAT"
   elif grep -q '^c UNKNOWN' "$log"; then
     outcome="UNKNOWN"
   fi

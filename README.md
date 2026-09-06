@@ -89,6 +89,23 @@ Bootstrap the pinned SAT solvers used by the sweep tools:
 JOBS=8 tools/bootstrap_solvers.sh
 ```
 
+Run a resumable recursive cube campaign with projection cuts:
+
+```bash
+tools/recursive_cube_search.py \
+  --weight 4 \
+  --projection-cuts \
+  --seconds 30 \
+  --jobs 4 \
+  --max-depth 8
+```
+
+The coordinator stores persistent logs, CNF hashes, and JSON classifications
+under `research-results/`, then deletes non-SAT CNFs because they are
+deterministically regenerable. `SOLVER_UNSAT` is exploratory evidence only;
+it does not become a certified exclusion until a proof is independently
+checked. Exit status 3 means the requested campaign remains open or deferred.
+
 ## Claim Boundary
 
 This project does not currently claim:

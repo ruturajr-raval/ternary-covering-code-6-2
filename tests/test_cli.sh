@@ -35,4 +35,37 @@ test "$(
     tr -d ' '
 )" -eq 26
 
+test "$(
+  build/generate_cnf --anchor-weight 4 --list-next-orbits |
+    awk -F'orbit_size=' '{total += $2} END {print total}'
+)" -eq 471
+test "$(
+  build/generate_cnf --anchor-weight 5 --list-next-orbits |
+    awk -F'orbit_size=' '{total += $2} END {print total}'
+)" -eq 663
+test "$(
+  build/generate_cnf --anchor-weight 6 --list-next-orbits |
+    awk -F'orbit_size=' '{total += $2} END {print total}'
+)" -eq 727
+
+set +e
+build/generate_cnf \
+  --centers 16 \
+  --at-most \
+  --anchor-weight 4 \
+  --orbit-path 0 \
+  >/dev/null 2>&1
+at_most_orbit_status=$?
+build/generate_cnf \
+  --centers 16 \
+  --anchor-weight 4 \
+  --orbit-path 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 \
+  >/dev/null 2>&1
+overlong_path_status=$?
+set -e
+test "$at_most_orbit_status" -eq 2
+test "$overlong_path_status" -eq 2
+
+python3 tests/test_recursive_cube_search.py
+
 echo "all tests passed"

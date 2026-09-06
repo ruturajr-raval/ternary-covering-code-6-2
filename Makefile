@@ -32,4 +32,4 @@ test: all
 	bash tests/test_cli.sh
 
 clean:
-	rm -rf $(BUILD_DIR)
+	rm -f $(BINARIES)

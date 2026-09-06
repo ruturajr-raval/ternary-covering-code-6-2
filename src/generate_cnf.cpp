@@ -170,6 +170,28 @@ Options parse_options(int argc, char** argv) {
         throw std::invalid_argument(
             "--orbit-path cannot be combined with fixed-level orbit options");
     }
+    const bool uses_orbit_branching =
+        options.third_orbit >= 0 ||
+        options.list_third_orbits ||
+        options.fourth_orbit >= 0 ||
+        options.list_fourth_orbits ||
+        options.fifth_orbit >= 0 ||
+        options.list_fifth_orbits ||
+        !options.orbit_path.empty() ||
+        options.list_next_orbits;
+    if (uses_orbit_branching && !options.exact) {
+        throw std::invalid_argument(
+            "orbit branching requires exact cardinality");
+    }
+    if (options.anchor_weight >= 0 && options.centers < 2) {
+        throw std::invalid_argument(
+            "the normalized anchor requires at least two centers");
+    }
+    if (options.orbit_path.size() >
+        static_cast<std::size_t>(options.centers - 2)) {
+        throw std::invalid_argument(
+            "orbit path fixes more centers than the exact cardinality");
+    }
     return options;
 }
 
@@ -349,6 +371,26 @@ std::vector<CenterOrbit> center_orbits(
         [](const CenterOrbit& lhs, const CenterOrbit& rhs) {
             return lhs.representative < rhs.representative;
         });
+
+    std::size_t expected = 0;
+    std::size_t observed = 0;
+    for (int word = 0; word < ternary_cover::kSpaceSize; ++word) {
+        if (!excluded[static_cast<std::size_t>(word)] &&
+            ternary_cover::hamming_weight(word) <= anchor_weight) {
+            ++expected;
+            if (!visited[static_cast<std::size_t>(word)]) {
+                throw std::logic_error(
+                    "stabilizer orbits do not cover every allowed center");
+            }
+        }
+    }
+    for (const CenterOrbit& orbit : result) {
+        observed += orbit.members.size();
+    }
+    if (observed != expected) {
+        throw std::logic_error(
+            "stabilizer orbits are not a disjoint partition");
+    }
     return result;
 }
 

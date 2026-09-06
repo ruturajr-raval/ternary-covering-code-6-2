@@ -58,6 +58,17 @@ For deeper cubes, `--orbit-path A,B,...` applies this construction
 recursively to arbitrary depth. `--list-next-orbits` enumerates the complete
 next split after any path, so no manually curated case tree is required.
 
+At path length `k`, zero, the maximum-weight anchor, and `k` orbit
+representatives are fixed. The earliest-occupied-orbit split is exhaustive
+because the formulation selects exactly 16 centers and `k < 14` guarantees
+that at least one further center remains. A path of length 14 already fixes
+all 16 centers and must be solved directly. Orbit branching is therefore
+rejected for at-most formulations, and paths longer than 14 are rejected.
+
+The orbit generator checks that every allowed center outside the fixed set
+belongs to exactly one listed stabilizer orbit. The root partitions contain
+471, 663, and 727 centers for maximum weights 4, 5, and 6, respectively.
+
 The generator also applies the proven coordinate-symbol bounds from
 `STRUCTURAL_LEMMAS.md`: each of the three symbols occurs between 3 and 10
 times in every coordinate of a 16-cover.
@@ -81,3 +92,23 @@ The planned proof package consists of:
 - hashes and replay commands for every artifact.
 
 No nonexistence claim will be made from solver exit status alone.
+
+## Campaign Coordinator
+
+`tools/recursive_cube_search.py` runs a resumable breadth-first cube
+campaign. Each node records the generator, solver, and verifier hashes, the
+CNF hash, the time limit, the orbit path, and the solver log. A SAT model is
+decoded into 16 words and accepted only after `verify_code` checks all 729
+ambient words.
+
+The coordinator uses separate states:
+
+- `SAT_VERIFIED` for a directly checked 16-word construction;
+- `SOLVER_UNSAT` for an unchecked solver classification;
+- `UNKNOWN` for an unresolved node;
+- `ERROR` or `CANCELLED` for an invalid or interrupted run.
+
+A recursive tree reducer distinguishes solver-level closure from certified
+closure. Persistent records live under `research-results/`, which is not
+removed by `make clean`. Generated CNFs are deleted after UNKNOWN or
+solver-only UNSAT outcomes unless `--keep-cnf` is requested.
