@@ -24,10 +24,12 @@
 
 The problem asks for the fewest radius-2 Hamming balls covering all 729
 ternary words of length 6. The audited interval is
-`15 <= K_3(6,2) <= 17`. The upper bound dates to 1991 and the lower bound to
-2004, leaving the existence of a 16-word cover unresolved for more than two
-decades. A verified 16-word cover would improve the upper bound, while a
-complete exclusion would settle the value at 17.
+`15 <= K_3(6,2) <= 17`. Hamalainen and Rankinen supplied the recorded
+17-word upper bound in 1991, while Bertolo, Ostergard, and Weakley recorded
+the lower bound 15 in 2004. The existence of a 16-word cover has therefore
+remained unresolved for more than two decades. A verified 16-word cover would
+improve the upper bound, while a complete exclusion would settle the value at
+17.
 
 ### Work And Verified Outcome
 
@@ -68,7 +70,9 @@ construction and exact repair searches.
 The public repository is
 [`ruturajr-raval/ternary-covering-code-6-2`](https://github.com/ruturajr-raval/ternary-covering-code-6-2).
 The immutable tagged release is
-[`v0.1.0`](https://github.com/ruturajr-raval/ternary-covering-code-6-2/releases/tag/v0.1.0).
+[`v0.1.0`](https://github.com/ruturajr-raval/ternary-covering-code-6-2/releases/tag/v0.1.0)
+at audited release commit
+`3dea87b7e2cd116fcd5fc05c63c21a71259b0923`.
 It is archived at version DOI `10.5281/zenodo.22510342`; the stable
 all-versions DOI is `10.5281/zenodo.22510341`. The Zenodo snapshot contains
 63 files that were checked against the release tag tree. GitHub and Zenodo
@@ -81,8 +85,8 @@ branches with deterministic case generation and independent certificate
 replay. Project-original material is MIT-licensed. The attributed 17-word
 regression fixture remains under its upstream BSD 3-Clause terms, and
 third-party tools retain their own licenses. Citation metadata is in
-`CITATION.cff`. The author is Ruturaj R Raval, Independent Researcher, ORCID
-`0000-0003-4930-8981`.
+`CITATION.cff`, and release history is in `RELEASE_NOTES.md`. The author is
+Ruturaj R Raval, Independent Researcher, ORCID `0000-0003-4930-8981`.
 
 ## Origin And History
 
