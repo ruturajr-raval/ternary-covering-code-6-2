@@ -1,0 +1,30 @@
+project: ternary-covering-code-6-2
+author: Ruturaj R Raval
+orcid: 0000-0003-4930-8981
+status: active_research
+problem:
+  notation: K_3(6,2)
+  published_interval:
+    lower: 15
+    upper: 17
+target:
+  construction: find_and_verify_16_word_code
+  exclusion: certify_no_cover_of_size_at_most_16
+current_claims:
+  - independent_exact_verifier_implemented
+  - known_17_word_code_replayed_as_regression_fixture
+  - construction_search_and_cnf_generation_implemented
+not_claimed:
+  - existence_of_16_word_code
+  - nonexistence_of_16_word_code
+  - exact_value_of_K_3_6_2
+evidence_policy:
+  construction:
+    - direct_exhaustive_coverage_check
+    - independent_implementation_check
+  exclusion:
+    - deterministic_case_generation
+    - proof_log_per_case
+    - independent_proof_replay
+    - artifact_hash_manifest
+
