@@ -144,6 +144,9 @@ The CP-SAT coordinator reports an `INFEASIBLE` branch only as
 `solver-only-no-certificate`. It does not convert that status into a
 mathematical nonexistence claim.
 
+The current clean campaign outcomes and fingerprints are recorded in
+`COMPUTATIONAL_STATUS.md`.
+
 Campaign exit codes are 0 for a verified witness, 2 for a complete
 solver-only exclusion, 3 for unresolved branches, and 4 for an operational
 error. Signals terminate active solver process groups, persist cancellation

@@ -53,6 +53,11 @@ Every normalized 16-cover therefore contains another center of weight at most
 4. The theorem-driven third-center split has 24 weight-5-anchor orbits and 14
 weight-6-anchor orbits, for 38 live cases rather than 60.
 
+A clean 60-second CP-SAT pass classified 6 of the 38 cases as solver-only
+`INFEASIBLE` and left 32 `UNKNOWN`. These statuses are not proof
+certificates. Exact settings, branch representatives, and fingerprints are
+recorded in [`docs/COMPUTATIONAL_STATUS.md`](docs/COMPUTATIONAL_STATUS.md).
+
 This is a rigorous structural reduction, not a new bound on `K_3(6,2)`.
 
 ## Build And Test
@@ -163,7 +168,8 @@ terminate their active solver process groups before returning.
 This project currently claims the implemented and tested search machinery,
 the stated necessary conditions, the verified 17-word certificate, the
 7-hole near-cover, the proof that the normalized maximum-weight-4 branch is
-impossible, and the complete 38-case low-weight third-center reduction.
+impossible, the complete 38-case low-weight third-center reduction, and the
+reproducible solver-only campaign record.
 
 It does not claim:
 
