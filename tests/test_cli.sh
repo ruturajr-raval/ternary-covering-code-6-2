@@ -16,11 +16,47 @@ set -e
 test "$noncover_status" -eq 1
 grep -Eq '^holes: [1-9][0-9]*$' <<<"$noncover_output"
 
-cnf_output="$(mktemp)"
-trap 'rm -f "$cnf_output"' EXIT
+compression_projection="$(mktemp "$root/build/test-compression.XXXXXX")"
+fourth_specialized="$(mktemp "$root/build/test-fourth-specialized.XXXXXX")"
+fourth_generic="$(mktemp "$root/build/test-fourth-generic.XXXXXX")"
+fifth_specialized="$(mktemp "$root/build/test-fifth-specialized.XXXXXX")"
+fifth_generic="$(mktemp "$root/build/test-fifth-generic.XXXXXX")"
+cnf_output="$(mktemp "$root/build/test-cnf.XXXXXX")"
+trap 'rm -f "$cnf_output" "$compression_projection" "$fourth_specialized" "$fourth_generic" "$fifth_specialized" "$fifth_generic"' EXIT
+compression_output="$(
+  build/compress_code \
+    --evaluate-only \
+    --start data/seed_18_supercode.txt \
+    --output "$compression_projection"
+)"
+grep -q '^supercode centers: 18$' <<<"$compression_output"
+grep -q '^supercode holes: 0$' <<<"$compression_output"
+grep -q '^best projected holes: 7$' <<<"$compression_output"
+grep -q '^four-coordinate violations: 12$' <<<"$compression_output"
+
 build/generate_cnf --centers 16 --fix-zero >"$cnf_output"
 grep -q '^p cnf ' "$cnf_output"
 grep -q '^1 0$' "$cnf_output"
+
+build/generate_cnf \
+  --centers 16 \
+  --anchor-weight 5 \
+  >"$cnf_output"
+grep -q \
+  '^c reduced branch core: 2 fixed centers, 64 forbidden centers, 583 unresolved point clauses$' \
+  "$cnf_output"
+python3 tests/test_cnf_semantics.py "$cnf_output"
+
+build/generate_cnf \
+  --centers 16 \
+  --anchor-weight 5 \
+  --antipodal-cuts \
+  --radial-sphere-cuts \
+  >"$cnf_output"
+grep -q '^c antipodal capacity cuts at 2 symmetry-fixed centers enabled$' \
+  "$cnf_output"
+grep -q '^c all 1458 radial distance-1 and distance-2 cuts enabled$' \
+  "$cnf_output"
 
 test "$(
   build/generate_cnf --anchor-weight 4 --list-third-orbits | wc -l |
@@ -48,6 +84,31 @@ test "$(
     awk -F'orbit_size=' '{total += $2} END {print total}'
 )" -eq 727
 
+build/generate_cnf \
+  --anchor-weight 5 \
+  --third-orbit 3 \
+  --list-fourth-orbits \
+  >"$fourth_specialized"
+build/generate_cnf \
+  --anchor-weight 5 \
+  --orbit-path 3 \
+  --list-next-orbits \
+  >"$fourth_generic"
+cmp "$fourth_specialized" "$fourth_generic"
+
+build/generate_cnf \
+  --anchor-weight 6 \
+  --third-orbit 2 \
+  --fourth-orbit 1 \
+  --list-fifth-orbits \
+  >"$fifth_specialized"
+build/generate_cnf \
+  --anchor-weight 6 \
+  --orbit-path 2,1 \
+  --list-next-orbits \
+  >"$fifth_generic"
+cmp "$fifth_specialized" "$fifth_generic"
+
 set +e
 build/generate_cnf \
   --centers 16 \
@@ -67,5 +128,7 @@ test "$at_most_orbit_status" -eq 2
 test "$overlong_path_status" -eq 2
 
 python3 tests/test_recursive_cube_search.py
+python3 tests/test_cp_sat_campaign.py
+python3 tests/test_package_campaign.py
 
 echo "all tests passed"

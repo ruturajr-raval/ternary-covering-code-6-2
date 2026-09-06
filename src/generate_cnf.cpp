@@ -28,6 +28,10 @@ struct Options {
     bool list_next_orbits = false;
     bool structural_constraints = true;
     bool projection_cuts = false;
+    bool four_projection_cuts = false;
+    bool five_projection_cuts = false;
+    bool antipodal_cuts = false;
+    bool radial_sphere_cuts = false;
 };
 
 int parse_int(const char* text, const char* name) {
@@ -104,6 +108,14 @@ Options parse_options(int argc, char** argv) {
             options.structural_constraints = false;
         } else if (argument == "--projection-cuts") {
             options.projection_cuts = true;
+        } else if (argument == "--four-projection-cuts") {
+            options.four_projection_cuts = true;
+        } else if (argument == "--five-projection-cuts") {
+            options.five_projection_cuts = true;
+        } else if (argument == "--antipodal-cuts") {
+            options.antipodal_cuts = true;
+        } else if (argument == "--radial-sphere-cuts") {
+            options.radial_sphere_cuts = true;
         } else if (argument == "--help") {
             std::cout
                 << "usage: generate_cnf [options]\n"
@@ -121,7 +133,11 @@ Options parse_options(int argc, char** argv) {
                 << "  --orbit-path A,B,... arbitrary-depth orbit branch\n"
                 << "  --list-next-orbits   print next orbits after path\n"
                 << "  --no-structural      omit proven symbol-count cuts\n"
-                << "  --projection-cuts    add two-coordinate capacity cuts\n";
+                << "  --projection-cuts    add two-coordinate capacity cuts\n"
+                << "  --four-projection-cuts add four-coordinate cuts\n"
+                << "  --five-projection-cuts add five-coordinate cuts\n"
+                << "  --antipodal-cuts     add cuts at symmetry-fixed centers\n"
+                << "  --radial-sphere-cuts add distance-1 and distance-2 cuts\n";
             std::exit(0);
         } else {
             throw std::invalid_argument("unknown option: " + argument);
@@ -191,6 +207,16 @@ Options parse_options(int argc, char** argv) {
         static_cast<std::size_t>(options.centers - 2)) {
         throw std::invalid_argument(
             "orbit path fixes more centers than the exact cardinality");
+    }
+    if (options.centers != 16 &&
+        (options.structural_constraints ||
+         options.projection_cuts ||
+         options.four_projection_cuts ||
+         options.five_projection_cuts ||
+         options.antipodal_cuts ||
+         options.radial_sphere_cuts)) {
+        throw std::invalid_argument(
+            "structural and projection cuts are specialized to 16 centers");
     }
     return options;
 }
@@ -336,9 +362,13 @@ struct CenterOrbit {
 
 std::vector<CenterOrbit> center_orbits(
     int anchor_weight,
-    const std::vector<int>& fixed_words) {
+    const std::vector<int>& fixed_words,
+    const std::vector<int>& forbidden_words = {}) {
     const auto group = stabilizer(anchor_weight, fixed_words);
     std::array<bool, ternary_cover::kSpaceSize> excluded{};
+    for (int forbidden : forbidden_words) {
+        excluded[static_cast<std::size_t>(forbidden)] = true;
+    }
     for (int fixed : fixed_words) {
         excluded[static_cast<std::size_t>(fixed)] = true;
     }
@@ -518,6 +548,135 @@ void add_between(
     }
 }
 
+void add_fixed_antipodal_cut(Cnf& cnf, int fixed_center) {
+    std::array<std::vector<int>, 3> shells;
+    shells[0].reserve(240);
+    shells[1].reserve(192);
+    shells[2].reserve(64);
+    for (int center = 0;
+         center < ternary_cover::kSpaceSize;
+         ++center) {
+        const int distance =
+            ternary_cover::hamming_distance(fixed_center, center);
+        if (distance >= 4) {
+            shells[static_cast<std::size_t>(distance - 4)]
+                .push_back(selection_variable(center));
+        }
+    }
+    if (shells[0].size() != 240 ||
+        shells[1].size() != 192 ||
+        shells[2].size() != 64) {
+        throw std::logic_error("antipodal shell has wrong size");
+    }
+
+    const auto four_counter =
+        add_threshold_counter(cnf, shells[0], 16);
+    const auto five_counter =
+        add_threshold_counter(cnf, shells[1], 6);
+    const auto six_counter =
+        add_threshold_counter(cnf, shells[2], 3);
+    const int four_last =
+        static_cast<int>(shells[0].size()) - 1;
+    const int five_last =
+        static_cast<int>(shells[1].size()) - 1;
+    const int six_last =
+        static_cast<int>(shells[2].size()) - 1;
+
+    const std::array<std::array<int, 6>, 3> required_four{{
+        {{16, 13, 10, 7, 4, 1}},
+        {{11, 8, 5, 2, 0, 0}},
+        {{5, 2, 0, 0, 0, 0}},
+    }};
+    const std::array<int, 3> five_upper_limits{{5, 3, 1}};
+    for (int six_upper = 0; six_upper <= 2; ++six_upper) {
+        for (int five_upper = 0;
+             five_upper <=
+             five_upper_limits[static_cast<std::size_t>(six_upper)];
+             ++five_upper) {
+            const int required =
+                required_four[static_cast<std::size_t>(six_upper)]
+                             [static_cast<std::size_t>(five_upper)];
+            cnf.add({
+                six_counter[static_cast<std::size_t>(six_last)]
+                           [static_cast<std::size_t>(six_upper + 1)],
+                five_counter[static_cast<std::size_t>(five_last)]
+                            [static_cast<std::size_t>(five_upper + 1)],
+                four_counter[static_cast<std::size_t>(four_last)]
+                            [static_cast<std::size_t>(required)]});
+        }
+    }
+}
+
+void add_radial_sphere_cuts(Cnf& cnf) {
+    for (int point = 0;
+         point < ternary_cover::kSpaceSize;
+         ++point) {
+        std::array<std::vector<int>, 5> shells;
+        shells[0].reserve(1);
+        shells[1].reserve(12);
+        shells[2].reserve(60);
+        shells[3].reserve(160);
+        shells[4].reserve(240);
+        for (int center = 0;
+             center < ternary_cover::kSpaceSize;
+             ++center) {
+            const int distance =
+                ternary_cover::hamming_distance(point, center);
+            if (distance <= 4) {
+                shells[static_cast<std::size_t>(distance)]
+                    .push_back(selection_variable(center));
+            }
+        }
+        if (shells[0].size() != 1 ||
+            shells[1].size() != 12 ||
+            shells[2].size() != 60 ||
+            shells[3].size() != 160 ||
+            shells[4].size() != 240) {
+            throw std::logic_error("radial shell has wrong size");
+        }
+
+        std::vector<int> one_or_two = shells[1];
+        one_or_two.insert(
+            one_or_two.end(),
+            shells[2].begin(),
+            shells[2].end());
+        const auto one_or_two_counter =
+            add_threshold_counter(cnf, one_or_two, 3);
+        const auto three_counter =
+            add_threshold_counter(cnf, shells[3], 3);
+        const int one_or_two_last =
+            static_cast<int>(one_or_two.size()) - 1;
+        const int three_last =
+            static_cast<int>(shells[3].size()) - 1;
+
+        std::vector<int> distance_one_clause = shells[0];
+        distance_one_clause.insert(
+            distance_one_clause.end(),
+            shells[1].begin(),
+            shells[1].end());
+        distance_one_clause.push_back(
+            one_or_two_counter[
+                static_cast<std::size_t>(one_or_two_last)][3]);
+        distance_one_clause.push_back(
+            three_counter[
+                static_cast<std::size_t>(three_last)][2]);
+        cnf.add(std::move(distance_one_clause));
+
+        std::vector<int> distance_two_clause = shells[0];
+        distance_two_clause.push_back(
+            one_or_two_counter[
+                static_cast<std::size_t>(one_or_two_last)][3]);
+        distance_two_clause.push_back(
+            three_counter[
+                static_cast<std::size_t>(three_last)][3]);
+        distance_two_clause.insert(
+            distance_two_clause.end(),
+            shells[4].begin(),
+            shells[4].end());
+        cnf.add(std::move(distance_two_clause));
+    }
+}
+
 void add_projection_cuts(Cnf& cnf) {
     for (int first = 0; first < ternary_cover::kLength; ++first) {
         for (int second = first + 1;
@@ -583,6 +742,167 @@ void add_projection_cuts(Cnf& cnf) {
     }
 }
 
+void add_four_projection_cuts(Cnf& cnf) {
+    for (int first = 0; first < ternary_cover::kLength; ++first) {
+        for (int second = first + 1;
+             second < ternary_cover::kLength;
+             ++second) {
+            for (int third = second + 1;
+                 third < ternary_cover::kLength;
+                 ++third) {
+                for (int fourth = third + 1;
+                     fourth < ternary_cover::kLength;
+                     ++fourth) {
+                    const std::array<int, 4> coordinates{
+                        first, second, third, fourth};
+                    for (int pattern = 0; pattern < 81; ++pattern) {
+                        int value = pattern;
+                        std::array<int, 4> symbols{};
+                        for (int index = 3; index >= 0; --index) {
+                            symbols[static_cast<std::size_t>(index)] =
+                                value % ternary_cover::kAlphabet;
+                            value /= ternary_cover::kAlphabet;
+                        }
+
+                        std::array<std::vector<int>, 3> shells;
+                        shells[0].reserve(9);
+                        shells[1].reserve(72);
+                        shells[2].reserve(216);
+                        for (int center = 0;
+                             center < ternary_cover::kSpaceSize;
+                             ++center) {
+                            const auto digits =
+                                ternary_cover::decode(center);
+                            int distance = 0;
+                            for (int index = 0; index < 4; ++index) {
+                                distance +=
+                                    digits[static_cast<std::size_t>(
+                                        coordinates[
+                                            static_cast<std::size_t>(
+                                                index)])] !=
+                                    symbols[static_cast<std::size_t>(index)];
+                            }
+                            if (distance <= 2) {
+                                shells[static_cast<std::size_t>(distance)]
+                                    .push_back(selection_variable(center));
+                            }
+                        }
+                        if (shells[0].size() != 9 ||
+                            shells[1].size() != 72 ||
+                            shells[2].size() != 216) {
+                            throw std::logic_error(
+                                "four-coordinate shell has wrong size");
+                        }
+
+                        const auto one_counter =
+                            add_threshold_counter(cnf, shells[1], 2);
+                        const auto two_counter =
+                            add_threshold_counter(cnf, shells[2], 9);
+                        const int one_last =
+                            static_cast<int>(shells[1].size()) - 1;
+                        const int two_last =
+                            static_cast<int>(shells[2].size()) - 1;
+
+                        std::vector<int> first_clause = shells[0];
+                        first_clause.insert(
+                            first_clause.end(),
+                            shells[1].begin(),
+                            shells[1].end());
+                        first_clause.push_back(
+                            two_counter[
+                                static_cast<std::size_t>(two_last)][9]);
+                        cnf.add(std::move(first_clause));
+
+                        std::vector<int> second_clause = shells[0];
+                        second_clause.push_back(
+                            one_counter[
+                                static_cast<std::size_t>(one_last)][2]);
+                        second_clause.push_back(
+                            two_counter[
+                                static_cast<std::size_t>(two_last)][4]);
+                        cnf.add(std::move(second_clause));
+                    }
+                }
+            }
+        }
+    }
+}
+
+void add_five_projection_cuts(Cnf& cnf) {
+    for (int omitted = 0; omitted < ternary_cover::kLength; ++omitted) {
+        for (int pattern = 0; pattern < 243; ++pattern) {
+            int value = pattern;
+            std::array<int, 5> symbols{};
+            for (int index = 4; index >= 0; --index) {
+                symbols[static_cast<std::size_t>(index)] =
+                    value % ternary_cover::kAlphabet;
+                value /= ternary_cover::kAlphabet;
+            }
+
+            std::array<std::vector<int>, 3> shells;
+            shells[0].reserve(3);
+            shells[1].reserve(30);
+            shells[2].reserve(120);
+            for (int center = 0;
+                 center < ternary_cover::kSpaceSize;
+                 ++center) {
+                const auto digits = ternary_cover::decode(center);
+                int distance = 0;
+                int projected_index = 0;
+                for (int coordinate = 0;
+                     coordinate < ternary_cover::kLength;
+                     ++coordinate) {
+                    if (coordinate == omitted) {
+                        continue;
+                    }
+                    distance +=
+                        digits[static_cast<std::size_t>(coordinate)] !=
+                        symbols[static_cast<std::size_t>(
+                            projected_index)];
+                    ++projected_index;
+                }
+                if (distance <= 2) {
+                    shells[static_cast<std::size_t>(distance)]
+                        .push_back(selection_variable(center));
+                }
+            }
+            if (shells[0].size() != 3 ||
+                shells[1].size() != 30 ||
+                shells[2].size() != 120) {
+                throw std::logic_error(
+                    "five-coordinate shell has wrong size");
+            }
+
+            const auto two_counter =
+                add_threshold_counter(cnf, shells[2], 3);
+            const int two_last =
+                static_cast<int>(shells[2].size()) - 1;
+            std::vector<int> clause = shells[0];
+            clause.insert(
+                clause.end(),
+                shells[1].begin(),
+                shells[1].end());
+            clause.push_back(
+                two_counter[
+                    static_cast<std::size_t>(two_last)][3]);
+            cnf.add(std::move(clause));
+        }
+    }
+}
+
+void add_far_center_cuts(Cnf& cnf) {
+    for (int center = 0; center < ternary_cover::kSpaceSize; ++center) {
+        std::vector<int> clause{-selection_variable(center)};
+        clause.reserve(257);
+        for (int other = 0; other < ternary_cover::kSpaceSize; ++other) {
+            if (ternary_cover::hamming_distance(center, other) >= 5) {
+                clause.push_back(selection_variable(other));
+            }
+        }
+        cnf.add(std::move(clause));
+    }
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -595,6 +915,8 @@ int main(int argc, char** argv) {
         std::vector<CenterOrbit> fifth_orbits;
         std::vector<std::vector<CenterOrbit>> path_orbits;
         std::vector<int> path_representatives;
+        std::vector<int> fourth_forbidden;
+        std::vector<int> fifth_forbidden;
         if (options.anchor_weight >= 0) {
             orbits = third_orbits(options.anchor_weight);
         }
@@ -624,8 +946,18 @@ int main(int argc, char** argv) {
             const int third =
                 orbits[static_cast<std::size_t>(options.third_orbit)]
                     .representative;
+            for (int orbit = 0; orbit < options.third_orbit; ++orbit) {
+                const auto& members =
+                    orbits[static_cast<std::size_t>(orbit)].members;
+                fourth_forbidden.insert(
+                    fourth_forbidden.end(),
+                    members.begin(),
+                    members.end());
+            }
             fourth_orbits = center_orbits(
-                options.anchor_weight, {0, anchor, third});
+                options.anchor_weight,
+                {0, anchor, third},
+                fourth_forbidden);
         }
         if (options.list_fourth_orbits) {
             for (std::size_t index = 0;
@@ -657,8 +989,19 @@ int main(int argc, char** argv) {
                 fourth_orbits[static_cast<std::size_t>(
                     options.fourth_orbit)]
                     .representative;
+            fifth_forbidden = fourth_forbidden;
+            for (int orbit = 0; orbit < options.fourth_orbit; ++orbit) {
+                const auto& members =
+                    fourth_orbits[static_cast<std::size_t>(orbit)].members;
+                fifth_forbidden.insert(
+                    fifth_forbidden.end(),
+                    members.begin(),
+                    members.end());
+            }
             fifth_orbits = center_orbits(
-                options.anchor_weight, {0, anchor, third, fourth});
+                options.anchor_weight,
+                {0, anchor, third, fourth},
+                fifth_forbidden);
         }
         if (options.list_fifth_orbits) {
             for (std::size_t index = 0;
@@ -682,9 +1025,12 @@ int main(int argc, char** argv) {
         if (!options.orbit_path.empty() || options.list_next_orbits) {
             std::vector<int> fixed_words{
                 0, anchor_word(options.anchor_weight)};
+            std::vector<int> forbidden_words;
             for (int orbit_index : options.orbit_path) {
-                auto level =
-                    center_orbits(options.anchor_weight, fixed_words);
+                auto level = center_orbits(
+                    options.anchor_weight,
+                    fixed_words,
+                    forbidden_words);
                 if (orbit_index < 0 ||
                     orbit_index >= static_cast<int>(level.size())) {
                     throw std::invalid_argument(
@@ -696,10 +1042,22 @@ int main(int argc, char** argv) {
                 path_orbits.push_back(std::move(level));
                 path_representatives.push_back(representative);
                 fixed_words.push_back(representative);
+                const auto& selected_level = path_orbits.back();
+                for (int orbit = 0; orbit < orbit_index; ++orbit) {
+                    const auto& members =
+                        selected_level[static_cast<std::size_t>(orbit)]
+                            .members;
+                    forbidden_words.insert(
+                        forbidden_words.end(),
+                        members.begin(),
+                        members.end());
+                }
             }
             if (options.list_next_orbits) {
-                const auto next =
-                    center_orbits(options.anchor_weight, fixed_words);
+                const auto next = center_orbits(
+                    options.anchor_weight,
+                    fixed_words,
+                    forbidden_words);
                 for (std::size_t index = 0; index < next.size(); ++index) {
                     std::cout
                         << index << ' '
@@ -713,34 +1071,132 @@ int main(int argc, char** argv) {
             }
         }
 
+        std::vector<int> symmetry_fixed_centers;
+        if (options.fix_zero) {
+            symmetry_fixed_centers.push_back(0);
+        }
+        if (options.anchor_weight >= 0) {
+            symmetry_fixed_centers.push_back(
+                anchor_word(options.anchor_weight));
+        }
+        if (options.third_orbit >= 0) {
+            symmetry_fixed_centers.push_back(
+                orbits[static_cast<std::size_t>(options.third_orbit)]
+                    .representative);
+        }
+        if (options.fourth_orbit >= 0) {
+            symmetry_fixed_centers.push_back(
+                fourth_orbits[static_cast<std::size_t>(
+                    options.fourth_orbit)]
+                    .representative);
+        }
+        if (options.fifth_orbit >= 0) {
+            symmetry_fixed_centers.push_back(
+                fifth_orbits[static_cast<std::size_t>(
+                    options.fifth_orbit)]
+                    .representative);
+        }
+        symmetry_fixed_centers.insert(
+            symmetry_fixed_centers.end(),
+            path_representatives.begin(),
+            path_representatives.end());
+        std::sort(
+            symmetry_fixed_centers.begin(),
+            symmetry_fixed_centers.end());
+        symmetry_fixed_centers.erase(
+            std::unique(
+                symmetry_fixed_centers.begin(),
+                symmetry_fixed_centers.end()),
+            symmetry_fixed_centers.end());
+
+        std::array<bool, ternary_cover::kSpaceSize> fixed_centers{};
+        std::array<bool, ternary_cover::kSpaceSize> forbidden_centers{};
+        for (int center = 0;
+             center < ternary_cover::kSpaceSize;
+             ++center) {
+            forbidden_centers[static_cast<std::size_t>(center)] =
+                ternary_cover::hamming_weight(center) >
+                options.maximum_weight;
+        }
+        auto forbid_earlier_orbits = [&](const auto& orbit_list,
+                                         int selected_orbit) {
+            for (int orbit = 0; orbit < selected_orbit; ++orbit) {
+                for (int center :
+                     orbit_list[static_cast<std::size_t>(orbit)].members) {
+                    forbidden_centers[
+                        static_cast<std::size_t>(center)] = true;
+                }
+            }
+        };
+        if (options.third_orbit >= 0) {
+            forbid_earlier_orbits(orbits, options.third_orbit);
+        }
+        if (options.fourth_orbit >= 0) {
+            forbid_earlier_orbits(
+                fourth_orbits, options.fourth_orbit);
+        }
+        if (options.fifth_orbit >= 0) {
+            forbid_earlier_orbits(fifth_orbits, options.fifth_orbit);
+        }
+        for (std::size_t level = 0;
+             level < options.orbit_path.size();
+             ++level) {
+            forbid_earlier_orbits(
+                path_orbits[level], options.orbit_path[level]);
+        }
+        for (int center : symmetry_fixed_centers) {
+            if (forbidden_centers[static_cast<std::size_t>(center)]) {
+                throw std::logic_error(
+                    "a symmetry-fixed center is also forbidden");
+            }
+            fixed_centers[static_cast<std::size_t>(center)] = true;
+        }
+
+        int uncovered_point_clauses = 0;
         for (int point = 0; point < ternary_cover::kSpaceSize; ++point) {
             std::vector<int> clause;
             clause.reserve(ternary_cover::kBallSize);
+            bool covered_by_fixed_center = false;
             for (int center :
                  geometry.balls[static_cast<std::size_t>(point)]) {
-                if (ternary_cover::hamming_weight(center) <=
-                    options.maximum_weight) {
+                if (fixed_centers[static_cast<std::size_t>(center)]) {
+                    covered_by_fixed_center = true;
+                    break;
+                }
+                if (!forbidden_centers[
+                        static_cast<std::size_t>(center)]) {
                     clause.push_back(selection_variable(center));
                 }
             }
-            cnf.add(std::move(clause));
+            if (!covered_by_fixed_center) {
+                cnf.add(std::move(clause));
+                ++uncovered_point_clauses;
+            }
         }
 
         std::vector<int> selection_literals;
         selection_literals.reserve(ternary_cover::kSpaceSize);
         for (int center = 0; center < ternary_cover::kSpaceSize; ++center) {
-            const int variable = selection_variable(center);
-            selection_literals.push_back(variable);
-            if (ternary_cover::hamming_weight(center) >
-                options.maximum_weight) {
-                cnf.add({-variable});
+            if (!fixed_centers[static_cast<std::size_t>(center)] &&
+                !forbidden_centers[static_cast<std::size_t>(center)]) {
+                selection_literals.push_back(
+                    selection_variable(center));
             }
+        }
+        const int remaining_centers =
+            options.centers -
+            static_cast<int>(symmetry_fixed_centers.size());
+        if (remaining_centers < 0 ||
+            remaining_centers >
+            static_cast<int>(selection_literals.size())) {
+            throw std::logic_error(
+                "fixed-center count is incompatible with cardinality");
         }
         add_between(
             cnf,
             selection_literals,
-            options.exact ? options.centers : 0,
-            options.centers);
+            options.exact ? remaining_centers : 0,
+            remaining_centers);
 
         if (options.structural_constraints) {
             for (int coordinate = 0;
@@ -766,73 +1222,35 @@ int main(int argc, char** argv) {
                     add_between(cnf, symbol_class, 3, 10);
                 }
             }
+            add_far_center_cuts(cnf);
+        }
+        if (options.antipodal_cuts) {
+            for (int center : symmetry_fixed_centers) {
+                add_fixed_antipodal_cut(cnf, center);
+            }
+        }
+        if (options.radial_sphere_cuts) {
+            add_radial_sphere_cuts(cnf);
         }
         if (options.projection_cuts) {
             add_projection_cuts(cnf);
         }
+        if (options.four_projection_cuts) {
+            add_four_projection_cuts(cnf);
+        }
+        if (options.five_projection_cuts) {
+            add_five_projection_cuts(cnf);
+        }
 
-        if (options.fix_zero) {
-            cnf.add({selection_variable(0)});
-        }
-        if (options.anchor_weight >= 0) {
-            cnf.add({
-                selection_variable(anchor_word(options.anchor_weight))});
-        }
-        if (options.third_orbit >= 0) {
-            for (int orbit = 0; orbit < options.third_orbit; ++orbit) {
-                for (int center :
-                     orbits[static_cast<std::size_t>(orbit)].members) {
-                    cnf.add({-selection_variable(center)});
-                }
+        for (int center = 0;
+             center < ternary_cover::kSpaceSize;
+             ++center) {
+            if (fixed_centers[static_cast<std::size_t>(center)]) {
+                cnf.add({selection_variable(center)});
+            } else if (
+                forbidden_centers[static_cast<std::size_t>(center)]) {
+                cnf.add({-selection_variable(center)});
             }
-            cnf.add({
-                selection_variable(
-                    orbits[static_cast<std::size_t>(options.third_orbit)]
-                        .representative)});
-        }
-        if (options.fourth_orbit >= 0) {
-            for (int orbit = 0; orbit < options.fourth_orbit; ++orbit) {
-                for (int center :
-                     fourth_orbits[static_cast<std::size_t>(orbit)]
-                         .members) {
-                    cnf.add({-selection_variable(center)});
-                }
-            }
-            cnf.add({
-                selection_variable(
-                    fourth_orbits[static_cast<std::size_t>(
-                        options.fourth_orbit)]
-                        .representative)});
-        }
-        if (options.fifth_orbit >= 0) {
-            for (int orbit = 0; orbit < options.fifth_orbit; ++orbit) {
-                for (int center :
-                     fifth_orbits[static_cast<std::size_t>(orbit)]
-                         .members) {
-                    cnf.add({-selection_variable(center)});
-                }
-            }
-            cnf.add({
-                selection_variable(
-                    fifth_orbits[static_cast<std::size_t>(
-                        options.fifth_orbit)]
-                        .representative)});
-        }
-        for (std::size_t level = 0;
-             level < options.orbit_path.size();
-             ++level) {
-            const int selected_orbit = options.orbit_path[level];
-            const auto& level_orbits = path_orbits[level];
-            for (int orbit = 0; orbit < selected_orbit; ++orbit) {
-                for (int center :
-                     level_orbits[static_cast<std::size_t>(orbit)]
-                         .members) {
-                    cnf.add({-selection_variable(center)});
-                }
-            }
-            cnf.add({
-                selection_variable(
-                    path_representatives[level])});
         }
 
         std::cout << "c K_3(6,2) radius-2 covering formulation\n";
@@ -840,6 +1258,17 @@ int main(int argc, char** argv) {
         std::cout << "c "
                   << (options.exact ? "exactly " : "at most ")
                   << options.centers << " centers\n";
+        std::cout
+            << "c reduced branch core: "
+            << symmetry_fixed_centers.size()
+            << " fixed centers, "
+            << std::count(
+                   forbidden_centers.begin(),
+                   forbidden_centers.end(),
+                   true)
+            << " forbidden centers, "
+            << uncovered_point_clauses
+            << " unresolved point clauses\n";
         if (options.fix_zero) {
             std::cout << "c center 000000 fixed by translation symmetry\n";
         }
@@ -851,11 +1280,29 @@ int main(int argc, char** argv) {
         }
         if (options.structural_constraints) {
             std::cout
-                << "c every coordinate-symbol class has size 3 through 10\n";
+                << "c symbol counts 3 through 10 and far-neighbor cuts\n";
         }
         if (options.projection_cuts) {
             std::cout
                 << "c all 135 two-coordinate capacity inequalities enabled\n";
+        }
+        if (options.four_projection_cuts) {
+            std::cout
+                << "c all 1215 four-coordinate capacity inequalities enabled\n";
+        }
+        if (options.five_projection_cuts) {
+            std::cout
+                << "c all 1458 five-coordinate capacity inequalities enabled\n";
+        }
+        if (options.antipodal_cuts) {
+            std::cout
+                << "c antipodal capacity cuts at "
+                << symmetry_fixed_centers.size()
+                << " symmetry-fixed centers enabled\n";
+        }
+        if (options.radial_sphere_cuts) {
+            std::cout
+                << "c all 1458 radial distance-1 and distance-2 cuts enabled\n";
         }
         if (options.fourth_orbit >= 0) {
             std::cout << "c earliest occupied fourth-center orbit "

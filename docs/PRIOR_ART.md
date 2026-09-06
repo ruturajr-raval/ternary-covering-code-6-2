@@ -11,8 +11,11 @@ The historical ternary covering-code table records
 15 <= K_3(6,2) <= 17.
 ```
 
-The table attributes the lower bound to Bertolo, Ostergard, and Weakly (2004)
+The table attributes the lower bound to Bertolo, Ostergard, and Weakley (2004)
 and the upper bound to Hamalainen and Rankinen (1991).
+
+The upper endpoint has therefore stood since 1991, and the interval
+`15 <= K_3(6,2) <= 17` has stood since 2004.
 
 Table source:
 https://old.sztaki.hu/~keri/codes/3_tables.pdf

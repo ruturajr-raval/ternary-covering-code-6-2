@@ -1,43 +1,52 @@
 # Ternary Covering Code `K_3(6,2)`
 
 This project studies the smallest number of radius-2 Hamming balls needed to
-cover the ternary words of length 6.
+cover the 729 ternary words of length 6.
 
-The ambient space has `3^6 = 729` words. Each radius-2 ball contains 73 words.
 The published interval is
 
 ```text
 15 <= K_3(6,2) <= 17.
 ```
 
-The immediate target is the unresolved 16-center case:
-
-- a verified 16-word code would improve the upper bound to 16;
-- a checked exclusion of every code of size at most 16, combined with the
-  known 17-word code, would prove `K_3(6,2) = 17`.
+The upper bound dates to work of Hamalainen and Rankinen in 1991. The lower
+bound of 15 was recorded by Bertolo, Ostergard, and Weakley in 2004. The
+16-center case has therefore remained the exact gap for more than two
+decades.
 
 ## Why This Case Matters
 
-This is a small but nontrivial exact covering problem. A result changes a
-published entry in the ternary covering-code table, and its evidence can be
-made unusually transparent:
+A resolution would change a published covering-code table entry:
 
-- a construction is only 16 words and can be checked by direct enumeration;
-- a nonexistence result can be supported by generated CNF, proof logs, and an
-  independent proof checker;
-- all 729 ambient words can be audited without numerical approximation.
+- a verified 16-word cover would improve the upper bound to 16;
+- a certified exclusion of every 16-word cover, together with the known
+  17-word cover, would prove `K_3(6,2) = 17`.
 
-## Current Status
+The instance is small enough for unusually transparent evidence. A
+construction contains only 16 words and can be checked against every ambient
+word. A nonexistence result can be decomposed into finite symmetry cases,
+proof-producing SAT instances, and independently replayed proof logs.
+
+## Verified Progress
 
 The repository currently provides:
 
-- an independent exact verifier for ternary length-6 codes;
-- an attributed regression fixture for the known 17-word code;
-- a parallel weighted local-search engine for 16-word constructions;
-- a CNF generator for the size-at-most-16 set-cover formulation;
-- deterministic regression tests.
+- a standalone exact verifier and an attributed 17-word regression
+  certificate;
+- a verified 18-word search seed and a 16-word near-cover leaving 7 holes;
+- local search, exact residual repair, and 18-to-16 compression tools;
+- deterministic CNF and CP-SAT formulations of the exact 16-center problem;
+- recursive stabilizer-orbit branching to arbitrary depth;
+- proved coordinate, projection, radial-sphere, and antipodal capacity cuts;
+- resumable campaigns with source and executable fingerprints, hashed
+  instances and logs, plus CP-SAT model and environment fingerprints.
 
-No new bound is claimed at this stage.
+One exact search branch is now closed mathematically. After translating a
+hypothetical 16-cover so that one center is `000000`, its maximum center
+weight cannot be at most 4. The 64 words antipodal to `000000` would receive
+capacity at most `15 * 4 = 60`. Thus only maximum-weight cases 5 and 6 remain.
+
+This is a rigorous structural reduction, not a new bound on `K_3(6,2)`.
 
 ## Build And Test
 
@@ -46,10 +55,11 @@ make
 make test
 ```
 
-Verify the known 17-word certificate:
+Verify the known 17-word certificate and the current near-cover:
 
 ```bash
 build/verify_code data/reference_17_code.txt
+build/verify_code data/seed_16_near_cover.txt
 ```
 
 Run a parallel construction search:
@@ -63,60 +73,98 @@ build/search_code \
   --output search-results/best_16_code.txt
 ```
 
+Search projections of a maintained 18-word cover:
+
+```bash
+build/compress_code \
+  --seconds 60 \
+  --threads 8 \
+  --start data/seed_18_supercode.txt \
+  --output search-results/compressed_best_16.txt
+```
+
 Try exact three-center repair around a near-cover:
 
 ```bash
-build/repair_code search-results/best_16_code.txt \
+build/repair_code data/seed_16_near_cover.txt \
   --remove 3 \
   --seconds 300 \
   --output search-results/repaired_16_code.txt
 ```
 
-Generate the baseline exact-16 CNF:
+Generate a normalized exact-16 CNF with the strongest implemented cuts:
 
 ```bash
 mkdir -p build/cnf
-build/generate_cnf --centers 16 --fix-zero > build/cnf/k3_6_2_le16.cnf
+build/generate_cnf \
+  --centers 16 \
+  --anchor-weight 5 \
+  --projection-cuts \
+  --four-projection-cuts \
+  --five-projection-cuts \
+  --antipodal-cuts \
+  --radial-sphere-cuts \
+  > build/cnf/k3_6_2_w5.cnf
 ```
 
-Exact 16 is equivalent to size at most 16 because any smaller covering code can
-be augmented with distinct centers without losing coverage. Pass `--at-most`
-to generate the unsimplified size-at-most formulation directly.
+Exact 16 is equivalent to size at most 16 because any smaller cover can be
+augmented with distinct centers without losing coverage. Pass `--at-most` to
+generate the unsimplified size-at-most formulation directly.
 
-Bootstrap the pinned SAT solvers used by the sweep tools:
+Bootstrap the pinned SAT solvers used by the recursive campaign:
 
 ```bash
 JOBS=8 tools/bootstrap_solvers.sh
 ```
 
-Run a resumable recursive cube campaign with projection cuts:
+Run a resumable recursive cube campaign:
 
 ```bash
 tools/recursive_cube_search.py \
-  --weight 4 \
+  --weight 5 \
   --projection-cuts \
+  --five-projection-cuts \
+  --antipodal-cuts \
+  --radial-sphere-cuts \
   --seconds 30 \
   --jobs 4 \
   --max-depth 8
 ```
 
-The coordinator stores persistent logs, CNF hashes, and JSON classifications
-under `research-results/`, then deletes non-SAT CNFs because they are
-deterministically regenerable. `SOLVER_UNSAT` is exploratory evidence only;
-it does not become a certified exclusion until a proof is independently
-checked. Exit status 3 means the requested campaign remains open or deferred.
+The optional CP-SAT path uses a platform-specific hash-locked environment:
+
+```bash
+tools/bootstrap_ortools.sh
+make test-cp-sat
+.tools/ortools-venv/bin/python tools/cp_sat_orbit_campaign.py \
+  --weight 5 \
+  --five-projection-cuts \
+  --seconds 60 \
+  --jobs 4 \
+  --workers-per-job 2
+```
+
+Campaign records are written under `research-results/`, which is intentionally
+excluded from source control. Solver `INFEASIBLE` is exploratory evidence
+only. It becomes a certified exclusion only after a proof artifact is replayed
+by an independent checker. Cached CP-SAT branches are accepted only after the
+current code reconstructs the same serialized model, and interrupted campaigns
+terminate their active solver process groups before returning.
 
 ## Claim Boundary
 
-This project does not currently claim:
+This project currently claims the implemented and tested search machinery,
+the stated necessary conditions, the verified 17-word certificate, the
+7-hole near-cover, and the proof that the normalized maximum-weight-4 branch
+is impossible.
+
+It does not claim:
 
 - a 16-word covering code;
 - nonexistence of a 16-word covering code;
 - the exact value of `K_3(6,2)`;
-- novelty for the known 17-word construction.
-
-Any future mathematical claim must be tied to a deterministic certificate,
-independent replay, and an explicit statement of what remains open.
+- novelty for the known 17-word construction;
+- a certified exclusion based only on a solver status.
 
 ## Author
 

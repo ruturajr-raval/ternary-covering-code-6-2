@@ -46,6 +46,23 @@ model = "s SATISFIABLE\nv " + " ".join(
 ) + " 0\n"
 assert module.selected_centers_from_model(model) == list(range(16))
 
+words = []
+for value in range(module.SPACE_SIZE):
+    digits = []
+    remaining = value
+    for _ in range(6):
+        digits.append(remaining % 3)
+        remaining //= 3
+    words.append(tuple(reversed(digits)))
+zero = words[0]
+anchor = (1, 1, 1, 1, 1, 0)
+assert sum(sum(digit != 0 for digit in word) > 5 for word in words) == 64
+assert sum(
+    sum(left != right for left, right in zip(word, zero)) > 2
+    and sum(left != right for left, right in zip(word, anchor)) > 2
+    for word in words
+) == 583
+
 assert module.can_have_remaining_center((0,) * 13)
 assert not module.can_have_remaining_center((0,) * 14)
 
@@ -64,6 +81,66 @@ assert module.reduce_tree(
     0,
 ) == "OPEN"
 
+for n0 in range(17):
+    for n1 in range(17 - n0):
+        for n2 in range(17 - n0 - n1):
+            inequality = 9 * n0 + 5 * n1 + n2 >= 9
+            encoded = (
+                (n0 >= 1 or n1 >= 1 or n2 >= 9)
+                and (n0 >= 1 or n1 >= 2 or n2 >= 4)
+            )
+            assert encoded == inequality
+
+for n0 in range(17):
+    for n1 in range(17 - n0):
+        for n2 in range(17 - n0 - n1):
+            inequality = 3 * n0 + 3 * n1 + n2 >= 3
+            encoded = n0 >= 1 or n1 >= 1 or n2 >= 3
+            assert encoded == inequality
+
+required_four = (
+    (16, 13, 10, 7, 4, 1),
+    (11, 8, 5, 2),
+    (5, 2),
+)
+for n4 in range(17):
+    for n5 in range(17):
+        for n6 in range(17):
+            inequality = 4 * n4 + 12 * n5 + 22 * n6 >= 64
+            encoded = all(
+                n6 >= six_upper + 1
+                or n5 >= five_upper + 1
+                or n4 >= required
+                for six_upper, row in enumerate(required_four)
+                for five_upper, required in enumerate(row)
+            )
+            assert encoded == inequality
+
+for n0 in range(17):
+    for n1 in range(17):
+        for n2 in range(17):
+            for n3 in range(17):
+                encoded = (
+                    n0 + n1 >= 1
+                    or n1 + n2 >= 3
+                    or n3 >= 2
+                )
+                if not encoded:
+                    assert 12 * (n0 + n1) + 4 * n2 + 3 * n3 < 12
+
+for n0 in range(17):
+    for n12 in range(17):
+        for n3 in range(17):
+            for n4 in range(17):
+                encoded = (
+                    n0 >= 1
+                    or n12 >= 3
+                    or n3 >= 3
+                    or n4 >= 1
+                )
+                if not encoded:
+                    assert 60 * n0 + 20 * n12 + 9 * n3 + 6 * n4 < 60
+
 
 def write_executable(path, text):
     path.write_text(text)
@@ -77,8 +154,16 @@ def make_args(root, generator, solver, verifier, name):
         generator=generator,
         solver=solver,
         verifier=verifier,
+        coordinator=module_path,
+        coordinator_sha256=module.hash_file(module_path),
+        git_commit="test-revision",
+        git_tracked_dirty=False,
         weight=4,
         projection_cuts=False,
+        four_projection_cuts=False,
+        five_projection_cuts=False,
+        antipodal_cuts=False,
+        radial_sphere_cuts=False,
         seconds=2,
         generation_seconds=5,
         minimum_free_bytes=0,
@@ -168,6 +253,12 @@ sys.exit(20)
     assert sat_result["witness_verified"]
     assert len(sat_result["selected_centers"]) == 16
     assert (sat_args.output / "0" / "case.cnf").exists()
+    assert module.cached_result(sat_args, (0,)) == sat_result
+    solution_path = sat_args.output / "0" / "solution.txt"
+    original_solution = solution_path.read_text()
+    solution_path.write_text(original_solution.replace("000000", "222222"))
+    assert module.cached_result(sat_args, (0,)) is None
+    solution_path.write_text(original_solution)
 
     unknown_args = make_args(
         temporary_root,
@@ -179,8 +270,13 @@ sys.exit(20)
     unknown_result = module.run_node(unknown_args, (0,))
     assert unknown_result["outcome"] == "UNKNOWN"
     assert unknown_result["next_count"] == 2
+    assert unknown_result["next_orbits"][0]["representative"] == "000001"
     assert not (unknown_args.output / "0" / "case.cnf").exists()
     assert module.cached_result(unknown_args, (0,)) == unknown_result
+    (unknown_args.output / "0" / "solve.log").write_text(
+        "c UNSATISFIABLE\n"
+    )
+    assert module.cached_result(unknown_args, (0,)) is None
 
     contradictory_args = make_args(
         temporary_root,

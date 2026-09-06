@@ -1,7 +1,8 @@
 # Structural Lemmas For A Hypothetical 16-Cover
 
 This note records elementary necessary conditions used by the exact search.
-All statements concern a set `C` of 16 distinct ternary words of length 6.
+All statements concern a set `C` of 16 distinct ternary words of length 6
+whose radius-2 balls cover the whole space.
 
 ## Pair-Overlap Lower Bound
 
@@ -42,17 +43,11 @@ Using `sum_d A_d = C(16,2) = 120`, direct coefficient comparison gives
 P = 540 + 6(G-210) + 9 A_1 + 7 A_2 + 6 A_6.
 ```
 
-Therefore every 16-word set satisfies
+Therefore every 16-word set satisfies `P >= 540`. Values 541 through 545 are
+impossible because every positive term on the right contributes at least 6.
 
-```text
-P >= 540.
-```
-
-Moreover, values 541 through 545 are impossible because every positive term
-on the right contributes at least 6.
-
-If the 16 balls cover all 729 points and `m(x)` is the coverage multiplicity
-of point `x`, then
+If the 16 balls cover all 729 points and `m(x)` is the coverage multiplicity,
+then
 
 ```text
 sum_x (m(x)-1) = 16*73 - 729 = 439
@@ -65,6 +60,34 @@ sum_x C(m(x)-1,2) = P - 439 >= 101.
 ```
 
 Thus any 16-cover must contain substantial triple-or-higher coverage.
+
+## Antipodal-Sphere Capacity
+
+Fix a center `z` in `C` and let `N_d(z)` count centers at distance `d` from
+`z`. The sphere of radius 6 around `z` contains 64 words. A radius-2 ball
+centered at distance `d` from `z` covers the following number of those words:
+
+```text
+d:          0  1  2  3  4   5   6
+capacity:   0  0  0  0  4  12  22
+```
+
+Consequently every 16-cover satisfies
+
+```text
+4 N_4(z) + 12 N_5(z) + 22 N_6(z) >= 64.
+```
+
+If all other 15 centers were within distance 4 of `z`, their total capacity
+would be at most `15*4 = 60`, a contradiction. Every center of a 16-cover
+therefore has another center at distance at least 5.
+
+After translating one selected center to `000000`, a maximum-weight anchor
+can consequently have only weight 5 or 6. This proves that the normalized
+maximum-weight-4 exact-search branch is impossible.
+
+The CNF generator emits the full antipodal inequality at each center fixed by
+the current symmetry branch.
 
 ## Two-Coordinate Capacity Inequality
 
@@ -104,23 +127,88 @@ Summing this inequality over `b` for a fixed `a` gives
 so `r_a >= 3`. Since all three row totals sum to 16, each is also at most 10.
 The same applies to every symbol in every coordinate.
 
-These 18 bounds are emitted by default in `generate_cnf`.
+The 18 symbol-count bounds are emitted by default. The 135 two-coordinate
+inequalities are enabled by `--projection-cuts`.
 
-## Five-Coordinate Projection Rule
+## Four-Coordinate Projection Capacity
 
-Delete one coordinate and fix a projected word `y` of length 5. Suppose no
-center lies within projected distance 1 of `y`.
+Fix four coordinates and a projected word `y`. Let `N_i` count centers at
+projected distance `i` from `y`. The nine words in the corresponding
+two-coordinate fiber receive capacity 9, 5, and 1 from centers at projected
+distances 0, 1, and 2. Hence
 
-A center at projected distance 2 can cover the full word `(y,s)` only when
-its omitted-coordinate symbol equals `s`. Centers farther away cannot cover
-`(y,s)`.
+```text
+9 N_0 + 5 N_1 + N_2 >= 9.
+```
 
-Therefore, the omitted-coordinate symbols among all projected-distance-2
-centers must contain all three symbols. This rule is reserved for later
-branch-specific propagation.
+The CNF option `--four-projection-cuts` emits two useful consequences for
+each of the 1,215 coordinate-pattern choices:
+
+```text
+N_0 + N_1 >= 1  or  N_2 >= 9,
+N_0 >= 1  or  N_1 >= 2  or  N_2 >= 4.
+```
+
+## Five-Coordinate Projection Capacity
+
+Delete one coordinate and fix a projected word `y` of length 5. Let `N_i`
+count centers at projected distance `i` from `y`.
+
+A center at projected distance 0 or 1 covers all three words in the omitted
+coordinate fiber. A center at projected distance 2 covers exactly the fiber
+word matching its omitted-coordinate symbol. More distant centers cover none.
+Therefore
+
+```text
+3 N_0 + 3 N_1 + N_2 >= 3.
+```
+
+Equivalently,
+
+```text
+N_0 >= 1  or  N_1 >= 1  or  N_2 >= 3.
+```
+
+The option `--five-projection-cuts` emits all 1,458 such inequalities.
+
+## Complete Radial Capacity Table
+
+For a reference word `z`, let `S_r(z)` be its radius-`r` sphere. A center at
+distance `d` from `z` covers a number `a_r(d)` of points in `S_r(z)`. Direct
+Hamming counting gives:
+
+```text
+r\d    0    1    2    3    4    5    6    |S_r|
+ 1    12   12    4    3    0    0    0      12
+ 2    60   20   20    9    6    0    0      60
+ 3     0   40   24   25   16   10    0     160
+ 4     0    0   24   24   27   25   15     240
+ 5     0    0    0   12   20   26   36     192
+ 6     0    0    0    0    4   12   22      64
+```
+
+Every cover must satisfy, for each `z` and each radius `r`,
+
+```text
+sum_d a_r(d) N_d(z) >= |S_r(z)|.
+```
+
+The CP-SAT model adds all six inequalities at every reference word. The CNF
+option `--radial-sphere-cuts` adds the following compact consequences of the
+radius-1 and radius-2 rows:
+
+```text
+N_0+N_1 >= 1  or  N_1+N_2 >= 3  or  N_3 >= 2,
+N_0 >= 1  or  N_1+N_2 >= 3  or  N_3 >= 3  or  N_4 >= 1.
+```
+
+Aggregate radial, projection, and ordinary distance-distribution conditions
+remain necessary rather than sufficient. The current 7-hole near-cover
+satisfies the complete radial inequalities, so higher-order branch structure
+is still required.
 
 ## Claim Boundary
 
-These lemmas do not prove that a 16-cover exists or does not exist. They are
-necessary conditions and solver cuts only.
-
+These lemmas exclude the maximum-weight-4 normalized branch and strengthen
+the remaining finite search. They do not prove that a 16-cover exists or does
+not exist.

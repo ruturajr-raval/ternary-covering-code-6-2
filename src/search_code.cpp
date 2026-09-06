@@ -308,6 +308,7 @@ struct SharedBest {
 
 void report_best(
     const Options& options,
+    const ternary_cover::Geometry& geometry,
     const SearchState& state,
     SharedBest& shared) {
     int observed = shared.holes.load(std::memory_order_relaxed);
@@ -324,6 +325,12 @@ void report_best(
         state.holes <= shared.holes.load(std::memory_order_relaxed)) {
         shared.centers = state.centers;
         std::sort(shared.centers.begin(), shared.centers.end());
+        const auto verification =
+            ternary_cover::verify_code(geometry, shared.centers);
+        if (!verification.distinct || verification.holes != state.holes) {
+            throw std::logic_error(
+                "internal search result failed direct verification");
+        }
         const std::filesystem::path output(options.output_path);
         if (output.has_parent_path()) {
             std::filesystem::create_directories(output.parent_path());
@@ -356,7 +363,7 @@ void worker(
         } else {
             initialize_greedy(geometry, state, rng);
         }
-        report_best(options, state, shared);
+        report_best(options, geometry, state, shared);
 
         int stagnation = 0;
         const int restart_limit = 20000 + 1000 * (worker_id % 7);
@@ -366,7 +373,7 @@ void worker(
              std::chrono::steady_clock::now() < deadline;
              ++iteration) {
             if (state.holes == 0) {
-                report_best(options, state, shared);
+                report_best(options, geometry, state, shared);
                 shared.found.store(true, std::memory_order_relaxed);
                 break;
             }
@@ -427,7 +434,7 @@ void worker(
             ++local_steps;
             if (state.holes <
                 shared.holes.load(std::memory_order_relaxed)) {
-                report_best(options, state, shared);
+                report_best(options, geometry, state, shared);
                 stagnation = 0;
             } else {
                 ++stagnation;

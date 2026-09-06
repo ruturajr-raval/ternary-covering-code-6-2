@@ -2,33 +2,49 @@
 
 ## Construction Track
 
-The construction search maintains 16 distinct centers and exact coverage
+The local search maintains 16 distinct centers and exact coverage
 multiplicities for all 729 points. A move replaces one center with a center
-covering a currently uncovered point. The objective:
-
-1. assigns a dominant penalty to uncovered points;
-2. increases the weights of persistent holes;
-3. uses singly covered points as a secondary robustness term;
-4. applies tabu tenure, perturbation, and independent parallel restarts.
-
-Every candidate written by the search is rechecked by `verify_code`.
+covering a current hole. The objective gives dominant weight to uncovered
+points, increases the weights of persistent holes, and uses singly covered
+points as a robustness term. Tabu tenure, perturbation, and independent
+parallel restarts provide diversification.
 
 The repair tool freezes `16-q` centers from a near-cover and solves the
 remaining `q`-center residual cover exactly. It uses maximum-gain, optimistic
-top-gain, and pairwise-distance packing lower bounds, and it verifies any
-completed code before writing it.
+top-gain, and pairwise-distance packing lower bounds.
 
-## Exclusion Track
+The compression search maintains an 18-center cover while scoring all
+153 ways to delete two centers. Its incremental support masks identify the
+best 16-center projection after each move. Distinct near-covers at or below a
+configurable hole threshold can be retained for later exact repair.
 
-The baseline CNF has one selection variable for each of the 729 possible
-centers.
+Before writing a candidate, each construction tool recomputes its coverage
+from scratch through the shared exact verifier. A publication witness must
+additionally be replayed by an independent implementation.
 
-- Each ambient point contributes one 73-literal coverage clause.
-- A propagation-complete threshold counter enforces exactly 16 selected
-  centers. This is equivalent to size at most 16 because adding centers cannot
-  destroy coverage.
-- Translation symmetry permits fixing `000000` as a center.
-- Optional maximum-weight anchors split the search into normalized cases.
+## Exact Formulation
+
+The baseline formulation has one Boolean selection variable for each of the
+729 possible centers.
+
+- Each ambient point requires at least one selected center within distance 2.
+- A propagation-complete threshold counter enforces exactly 16 centers.
+- Translation symmetry fixes `000000`.
+- A maximum-weight anchor splits the normalized problem into weights 5 and 6.
+- Coordinate-symbol counts are constrained to the proved interval 3 through
+  10.
+
+Exact 16 is equivalent to size at most 16 because adding distinct centers
+cannot destroy coverage. The maximum-weight-4 branch is omitted only because
+the antipodal-sphere argument in `STRUCTURAL_LEMMAS.md` proves it impossible.
+
+For a branch with fixed and forbidden centers, the generator builds a reduced
+core. Coverage clauses already satisfied by fixed centers are omitted, other
+coverage clauses contain only allowed centers, and the cardinality counter
+contains only undecided centers. Explicit unit clauses for fixed and
+forbidden variables remain in the output for auditability.
+
+## Symmetry Branching
 
 For a fixed maximum-weight anchor of weight `d`, the pointwise stabilizer
 permutes the first `d` coordinates, permutes the remaining coordinates, and
@@ -39,76 +55,110 @@ center's orbit is determined by:
 - its number of nonzero symbols outside the support.
 
 There are 29, 34, and 26 eligible third-center orbits for anchor weights 4, 5,
-and 6. Choosing the earliest occupied orbit and mapping one of its selected
-centers to the canonical representative gives an exhaustive 89-case split.
-Earlier orbits are forbidden in each case, so the split does not overlap.
+and 6. Weight 4 is retained as a regression case even though it is now
+excluded mathematically. Choosing the earliest occupied orbit and mapping one
+selected center to its canonical representative gives a complete,
+nonoverlapping split.
 
-The same construction is applied one level deeper. For each third-center
-case, the generator enumerates the full subgroup that fixes zero, the
-maximum-weight anchor, and the selected third-center representative. The
-earliest occupied orbit under this subgroup provides a complete fourth-center
-split. This is generated from the automorphism action rather than a
-hand-maintained orbit table.
+At deeper levels the generator enumerates the full subgroup fixing all
+selected representatives. The earliest occupied orbit under that subgroup
+provides the next split. `--orbit-path A,B,...` applies this construction
+recursively, while `--list-next-orbits` enumerates the complete next branch
+set.
 
-Unresolved fourth-center leaves can be split once more by the stabilizer that
-fixes all four selected representatives. The fifth-center orbit generator
-uses the same exact group action and earliest-occupied-orbit rule.
-
-For deeper cubes, `--orbit-path A,B,...` applies this construction
-recursively to arbitrary depth. `--list-next-orbits` enumerates the complete
-next split after any path, so no manually curated case tree is required.
+Earlier forbidden orbits form an invariant set under the parent stabilizer
+and therefore remain invariant under every later subgroup. The generator
+carries this full ancestor-forbidden set into each deeper orbit computation
+before selecting the next representative.
 
 At path length `k`, zero, the maximum-weight anchor, and `k` orbit
-representatives are fixed. The earliest-occupied-orbit split is exhaustive
-because the formulation selects exactly 16 centers and `k < 14` guarantees
-that at least one further center remains. A path of length 14 already fixes
-all 16 centers and must be solved directly. Orbit branching is therefore
-rejected for at-most formulations, and paths longer than 14 are rejected.
+representatives are fixed. Since exactly 16 centers are selected, branching
+is exhaustive while fewer than 16 centers are fixed. Orbit branching is
+therefore rejected for at-most formulations, and paths longer than 14 are
+rejected.
 
-The orbit generator checks that every allowed center outside the fixed set
-belongs to exactly one listed stabilizer orbit. The root partitions contain
-471, 663, and 727 centers for maximum weights 4, 5, and 6, respectively.
+The generator checks that every allowed center outside the fixed set belongs
+to exactly one listed stabilizer orbit. The root partitions contain 471, 663,
+and 727 centers for maximum weights 4, 5, and 6.
 
-The generator also applies the proven coordinate-symbol bounds from
-`STRUCTURAL_LEMMAS.md`: each of the three symbols occurs between 3 and 10
-times in every coordinate of a 16-cover.
+## Strengthening Inequalities
 
-For difficult leaves, `--projection-cuts` adds all 135 inequalities
+The CNF generator supports five complementary cut families:
 
-```text
-2 n_ab + r_a + c_b >= 9.
-```
+- `--projection-cuts` adds all 135 two-coordinate capacity inequalities;
+- `--four-projection-cuts` adds consequences of all 1,215 four-coordinate
+  fiber inequalities;
+- `--five-projection-cuts` adds all 1,458 five-coordinate fiber
+  inequalities;
+- `--antipodal-cuts` adds the full radius-6 sphere inequality at every
+  symmetry-fixed center;
+- `--radial-sphere-cuts` adds two compact radial clauses at every ambient
+  reference word.
 
-The encoding uses threshold variables for the projection cell and its
-row-or-column fringe. It distinguishes cell counts 0, 1, 2, and at least 3,
-avoiding a direct weighted-cardinality expansion.
+The CP-SAT formulation uses the same exact cover, cardinality, symmetry,
+coordinate, two-coordinate, and optional five-coordinate conditions. It also
+adds the complete radius-1 through radius-6 capacity inequalities at every
+reference word.
 
-The planned proof package consists of:
+## Campaign Coordinators
 
-- a deterministic CNF generator;
-- a complete symmetry case list;
-- one proof log per case;
-- a pinned independent proof checker;
-- hashes and replay commands for every artifact.
-
-No nonexistence claim will be made from solver exit status alone.
-
-## Campaign Coordinator
-
-`tools/recursive_cube_search.py` runs a resumable breadth-first cube
-campaign. Each node records the generator, solver, and verifier hashes, the
-CNF hash, the time limit, the orbit path, and the solver log. A SAT model is
+`tools/recursive_cube_search.py` runs a resumable breadth-first SAT campaign.
+Each node records the generator, solver, and verifier hashes, the CNF hash,
+the time limit, the orbit path, and the solver log. A SAT assignment is
 decoded into 16 words and accepted only after `verify_code` checks all 729
 ambient words.
 
-The coordinator uses separate states:
+The SAT coordinator distinguishes:
 
 - `SAT_VERIFIED` for a directly checked 16-word construction;
 - `SOLVER_UNSAT` for an unchecked solver classification;
 - `UNKNOWN` for an unresolved node;
 - `ERROR` or `CANCELLED` for an invalid or interrupted run.
 
-A recursive tree reducer distinguishes solver-level closure from certified
-closure. Persistent records live under `research-results/`, which is not
-removed by `make clean`. Generated CNFs are deleted after UNKNOWN or
-solver-only UNSAT outcomes unless `--keep-cnf` is requested.
+`tools/cp_sat_orbit_campaign.py` runs the 29, 34, or 26 third-center orbit
+cases in parallel. It derives the orbit manifest from the model code, then
+independently checks every orbit member, representative, disjointness, and
+exhaustive coverage before launching any solver. Its campaign fingerprint
+includes the Git commit and worktree state, exact scripts and verifier,
+Python executable, installed package set, solver version, model
+configuration, orbit manifest, and branch seed. A separate run fingerprint
+records the selected orbit subset, time limit, and parallel job count. Every
+completed solver result additionally records a deterministic
+serialized-model hash, exact command, solver exit code, and solver-log hash.
+Before reusing a cached record, the coordinator rebuilds that branch without
+solving and requires the serialized-model hash to match. A cached witness is
+reverified and must match its recorded centers and branch.
+
+The CP-SAT coordinator reports an `INFEASIBLE` branch only as
+`solver-only-no-certificate`. It does not convert that status into a
+mathematical nonexistence claim.
+
+Campaign exit codes are 0 for a verified witness, 2 for a complete
+solver-only exclusion, 3 for unresolved branches, and 4 for an operational
+error. Signals terminate active solver process groups, persist cancellation
+records, and return 130 for `SIGINT` or 143 for `SIGTERM`.
+
+Raw campaign directories are not publication artifacts. After a clean,
+committed run, `tools/package_campaign.py` requires the campaign's recorded
+clean source commit to match the checked-out commit and requires a verified
+witness or certified proof tree by default. It copies accepted evidence into
+the explicit `artifacts/` allowlist without modifying its bytes, excludes
+temporary and lock files, rejects local home paths, email addresses,
+symlinks, and unsupported file types, then writes a SHA-256 manifest.
+
+## Certification Standard
+
+A construction result requires:
+
+- a 16-word witness;
+- direct exhaustive coverage verification;
+- replay by an independent implementation.
+
+A nonexistence result requires:
+
+- deterministic and exhaustive symmetry case generation;
+- one proof artifact per terminal case;
+- independent proof replay;
+- a hash manifest and complete replay commands.
+
+Solver exit status alone is not a certificate.

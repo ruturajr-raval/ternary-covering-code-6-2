@@ -18,7 +18,7 @@ import time
 import uuid
 
 
-RESULT_SCHEMA = 2
+RESULT_SCHEMA = 7
 SPACE_SIZE = 729
 TARGET_CENTERS = 16
 FIXED_PREFIX_CENTERS = 2
@@ -38,7 +38,26 @@ def format_path(path):
     return "root" if not path else "_".join(str(value) for value in path)
 
 
-def generator_command(generator, weight, path, projection_cuts):
+def command_path(root, path):
+    candidate = Path(path)
+    try:
+        relative = candidate.resolve().relative_to(root.resolve())
+    except ValueError:
+        return str(candidate)
+    text = str(relative)
+    return text if "/" in text else f"./{text}"
+
+
+def generator_command(
+    generator,
+    weight,
+    path,
+    projection_cuts,
+    four_projection_cuts,
+    five_projection_cuts,
+    antipodal_cuts,
+    radial_sphere_cuts,
+):
     command = [
         str(generator),
         "--centers",
@@ -50,12 +69,20 @@ def generator_command(generator, weight, path, projection_cuts):
         command.extend(["--orbit-path", ",".join(map(str, path))])
     if projection_cuts:
         command.append("--projection-cuts")
+    if four_projection_cuts:
+        command.append("--four-projection-cuts")
+    if five_projection_cuts:
+        command.append("--five-projection-cuts")
+    if antipodal_cuts:
+        command.append("--antipodal-cuts")
+    if radial_sphere_cuts:
+        command.append("--radial-sphere-cuts")
     return command
 
 
-def list_next_orbits(generator, weight, path, timeout=300):
+def list_next_orbits(root, generator, weight, path, timeout=300):
     command = [
-        str(generator),
+        command_path(root, generator),
         "--anchor-weight",
         str(weight),
     ]
@@ -68,8 +95,30 @@ def list_next_orbits(generator, weight, path, timeout=300):
         capture_output=True,
         text=True,
         timeout=timeout,
+        cwd=root,
     )
-    return len([line for line in completed.stdout.splitlines() if line.strip()])
+    result = []
+    for line in completed.stdout.splitlines():
+        if not line.strip():
+            continue
+        expected_index = len(result)
+        match = re.fullmatch(
+            r"(\d+) ([012]{6}) orbit_size=(\d+)",
+            line.strip(),
+        )
+        if match is None:
+            raise ValueError(f"invalid orbit listing line: {line}")
+        index, representative, orbit_size = match.groups()
+        if int(index) != expected_index:
+            raise ValueError("orbit listing indices are not consecutive")
+        result.append(
+            {
+                "index": int(index),
+                "representative": representative,
+                "orbit_size": int(orbit_size),
+            }
+        )
+    return result
 
 
 def hash_file(path):
@@ -157,13 +206,14 @@ def verify_sat_model(args, node_dir, log_text):
     )
     completed = subprocess.run(
         [str(args.verifier), str(solution_path)],
+        cwd=args.root,
         capture_output=True,
         text=True,
     )
     verification_text = completed.stdout + completed.stderr
     (node_dir / "verification.txt").write_text(verification_text)
     if completed.returncode != 0:
-        raise ValueError("decoded SAT model fails the independent verifier")
+        raise ValueError("decoded SAT model fails the configured verifier")
     required_lines = {
         f"centers: {TARGET_CENTERS}",
         "distinct: yes",
@@ -172,6 +222,70 @@ def verify_sat_model(args, node_dir, log_text):
     if not required_lines.issubset(set(verification_text.splitlines())):
         raise ValueError("verifier output is missing required success fields")
     return centers
+
+
+def valid_next_orbits(result):
+    orbits = result.get("next_orbits")
+    if (
+        not isinstance(orbits, list)
+        or result.get("next_count") != len(orbits)
+    ):
+        return False
+    return all(
+        entry.get("index") == index
+        and re.fullmatch(
+            r"[012]{6}", str(entry.get("representative", ""))
+        )
+        is not None
+        and isinstance(entry.get("orbit_size"), int)
+        and entry["orbit_size"] > 0
+        for index, entry in enumerate(orbits)
+    )
+
+
+def verify_cached_sat_witness(args, node_dir, result):
+    solution_path = node_dir / "solution.txt"
+    verification_path = node_dir / "verification.txt"
+    if (
+        not solution_path.exists()
+        or not verification_path.exists()
+        or result.get("solution_sha256") != hash_file(solution_path)
+        or result.get("verification_sha256")
+        != hash_file(verification_path)
+    ):
+        return False
+    words = [
+        line.strip()
+        for line in solution_path.read_text().splitlines()
+        if line.strip()
+    ]
+    if (
+        len(words) != TARGET_CENTERS
+        or len(set(words)) != TARGET_CENTERS
+        or any(re.fullmatch(r"[012]{6}", word) is None for word in words)
+    ):
+        return False
+    selected = sorted(int(word, 3) for word in words)
+    if selected != result.get("selected_centers"):
+        return False
+    completed = subprocess.run(
+        [str(args.verifier), str(solution_path)],
+        cwd=args.root,
+        capture_output=True,
+        text=True,
+    )
+    verification_text = completed.stdout + completed.stderr
+    required_lines = {
+        f"centers: {TARGET_CENTERS}",
+        "distinct: yes",
+        "holes: 0",
+    }
+    return (
+        completed.returncode == 0
+        and required_lines.issubset(
+            set(verification_text.splitlines())
+        )
+    )
 
 
 def write_json(path, value):
@@ -210,6 +324,7 @@ def run_process(
     timeout,
     cancel_event,
     stderr_path=None,
+    cwd=None,
 ):
     started = time.monotonic()
     process = None
@@ -226,6 +341,7 @@ def run_process(
                 stdout=stdout,
                 stderr=stderr,
                 start_new_session=True,
+                cwd=cwd,
             )
             deadline = started + timeout
             stop_reason = None
@@ -294,14 +410,42 @@ def campaign_fingerprint(args):
         "schema": RESULT_SCHEMA,
         "weight": args.weight,
         "projection_cuts": args.projection_cuts,
+        "four_projection_cuts": args.four_projection_cuts,
+        "five_projection_cuts": args.five_projection_cuts,
+        "antipodal_cuts": args.antipodal_cuts,
+        "radial_sphere_cuts": args.radial_sphere_cuts,
         "generator_sha256": args.generator_sha256,
         "solver_sha256": args.solver_sha256,
         "verifier_sha256": args.verifier_sha256,
+        "coordinator_sha256": args.coordinator_sha256,
+        "git_commit": args.git_commit,
+        "git_tracked_dirty": args.git_tracked_dirty,
         "target_centers": TARGET_CENTERS,
     }
     return hashlib.sha256(
         json.dumps(payload, sort_keys=True).encode()
     ).hexdigest()
+
+
+def git_provenance(root):
+    try:
+        commit = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=root,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        status = subprocess.run(
+            ["git", "status", "--porcelain", "--untracked-files=no"],
+            cwd=root,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout
+    except (OSError, subprocess.SubprocessError):
+        return None, None
+    return commit, bool(status.strip())
 
 
 def result_is_reusable(args, path, result, honor_rerun=True):
@@ -314,9 +458,67 @@ def result_is_reusable(args, path, result, honor_rerun=True):
         "weight": args.weight,
         "path": list(path),
         "projection_cuts": args.projection_cuts,
+        "four_projection_cuts": args.four_projection_cuts,
+        "five_projection_cuts": args.five_projection_cuts,
+        "antipodal_cuts": args.antipodal_cuts,
+        "radial_sphere_cuts": args.radial_sphere_cuts,
         "campaign_fingerprint": args.campaign_fingerprint,
     }
     if any(result.get(key) != value for key, value in expected.items()):
+        return False
+    expected_components = {
+        "coordinator_sha256": args.coordinator_sha256,
+        "generator_sha256": args.generator_sha256,
+        "solver_sha256": args.solver_sha256,
+        "verifier_sha256": args.verifier_sha256,
+        "git_commit": args.git_commit,
+        "git_tracked_dirty": args.git_tracked_dirty,
+    }
+    if any(
+        result.get(key) != value
+        for key, value in expected_components.items()
+    ):
+        return False
+    node_dir = args.output / format_path(path)
+    cnf_path = node_dir / "case.cnf"
+    expected_generator_command = generator_command(
+        command_path(args.root, args.generator),
+        args.weight,
+        path,
+        args.projection_cuts,
+        args.four_projection_cuts,
+        args.five_projection_cuts,
+        args.antipodal_cuts,
+        args.radial_sphere_cuts,
+    )
+    if result.get("generator_command") != expected_generator_command:
+        return False
+    recorded_seconds = result.get("time_limit_seconds")
+    if not isinstance(recorded_seconds, int) or recorded_seconds <= 0:
+        return False
+    expected_solver_command = [
+        command_path(args.root, args.solver),
+        "-t",
+        str(recorded_seconds),
+        str(cnf_path.relative_to(args.root)),
+    ]
+    if result.get("solver_command") != expected_solver_command:
+        return False
+    log_path = node_dir / "solve.log"
+    if (
+        not log_path.exists()
+        or result.get("solve_log_sha256") != hash_file(log_path)
+    ):
+        return False
+    solver_outcome = classify_log(log_path.read_text(errors="replace"))
+    if (
+        solver_outcome != result.get("solver_outcome")
+        or not solver_result_is_consistent(
+            solver_outcome, result.get("exit_code")
+        )
+    ):
+        return False
+    if not valid_next_orbits(result):
         return False
     outcome = result.get("outcome")
     if outcome in {"CANCELLED", "ERROR"}:
@@ -324,7 +526,18 @@ def result_is_reusable(args, path, result, honor_rerun=True):
     if outcome == "UNKNOWN":
         return result.get("time_limit_seconds", 0) >= args.seconds
     if outcome == "SAT_VERIFIED":
-        return result.get("witness_verified") is True
+        expected_verifier_command = [
+            command_path(args.root, args.verifier),
+            str((node_dir / "solution.txt").relative_to(args.root)),
+        ]
+        return (
+            result.get("witness_verified") is True
+            and result.get("verifier_command")
+            == expected_verifier_command
+            and cnf_path.exists()
+            and result.get("cnf_sha256") == hash_file(cnf_path)
+            and verify_cached_sat_witness(args, node_dir, result)
+        )
     return outcome in {"SOLVER_UNSAT", "UNSAT_VERIFIED"}
 
 
@@ -359,19 +572,34 @@ def initial_result(args, path):
         "time_limit_seconds": args.seconds,
         "cnf_sha256": None,
         "cnf_size": None,
+        "solve_log_sha256": None,
+        "solution_sha256": None,
+        "verification_sha256": None,
         "next_count": 0,
+        "next_orbits": [],
         "projection_cuts": args.projection_cuts,
-        "solver": str(args.solver),
+        "four_projection_cuts": args.four_projection_cuts,
+        "five_projection_cuts": args.five_projection_cuts,
+        "antipodal_cuts": args.antipodal_cuts,
+        "radial_sphere_cuts": args.radial_sphere_cuts,
+        "coordinator": command_path(args.root, args.coordinator),
+        "coordinator_sha256": args.coordinator_sha256,
+        "git_commit": args.git_commit,
+        "git_tracked_dirty": args.git_tracked_dirty,
+        "solver": command_path(args.root, args.solver),
         "solver_sha256": args.solver_sha256,
-        "generator": str(args.generator),
+        "generator": command_path(args.root, args.generator),
         "generator_sha256": args.generator_sha256,
-        "verifier": str(args.verifier),
+        "verifier": command_path(args.root, args.verifier),
         "verifier_sha256": args.verifier_sha256,
         "witness_verified": False,
         "selected_centers": [],
         "proof_status": "none",
         "failed_stage": None,
         "error": None,
+        "generator_command": [],
+        "solver_command": [],
+        "verifier_command": [],
     }
 
 
@@ -393,11 +621,16 @@ def run_node(args, path):
     log_path = node_dir / "solve.log"
     temporary_log_path = node_dir / f"solve.log.{token}.tmp"
     command = generator_command(
-        args.generator,
+        command_path(args.root, args.generator),
         args.weight,
         path,
         args.projection_cuts,
+        args.four_projection_cuts,
+        args.five_projection_cuts,
+        args.antipodal_cuts,
+        args.radial_sphere_cuts,
     )
+    result["generator_command"] = command
     stage = "generation"
     try:
         with args.storage_lock:
@@ -416,6 +649,7 @@ def run_node(args, path):
                         args.generation_seconds,
                         args.cancel_event,
                         generation_stderr_path,
+                        args.root,
                     )
                 )
                 result["generation_exit_code"] = generation_exit_code
@@ -458,18 +692,21 @@ def run_node(args, path):
 
         stage = "solving"
         solver_command = [
-            str(args.solver),
+            command_path(args.root, args.solver),
             "-t",
             str(args.seconds),
-            str(cnf_path),
+            str(cnf_path.relative_to(args.root)),
         ]
+        result["solver_command"] = solver_command
         exit_code, elapsed, stop_reason = run_process(
             solver_command,
             temporary_log_path,
             args.seconds + 90,
             args.cancel_event,
+            cwd=args.root,
         )
         temporary_log_path.replace(log_path)
+        result["solve_log_sha256"] = hash_file(log_path)
         result["exit_code"] = exit_code
         result["elapsed_seconds"] = round(elapsed, 6)
         if stop_reason == "cancelled":
@@ -500,6 +737,10 @@ def run_node(args, path):
                 result["outcome"] = "UNKNOWN"
             else:
                 stage = "witness_verification"
+                result["verifier_command"] = [
+                    command_path(args.root, args.verifier),
+                    str((node_dir / "solution.txt").relative_to(args.root)),
+                ]
                 selected_centers = verify_sat_model(
                     args, node_dir, log_text
                 )
@@ -507,18 +748,26 @@ def run_node(args, path):
                 result["witness_verified"] = True
                 result["selected_centers"] = selected_centers
                 result["proof_status"] = "direct-witness-verification"
+                result["solution_sha256"] = hash_file(
+                    node_dir / "solution.txt"
+                )
+                result["verification_sha256"] = hash_file(
+                    node_dir / "verification.txt"
+                )
 
         if (
             result["outcome"] == "UNKNOWN"
             and can_have_remaining_center(path)
         ):
             stage = "orbit_enumeration"
-            result["next_count"] = list_next_orbits(
+            result["next_orbits"] = list_next_orbits(
+                args.root,
                 args.generator,
                 args.weight,
                 path,
                 timeout=args.generation_seconds,
             )
+            result["next_count"] = len(result["next_orbits"])
     except Exception as exception:
         result["outcome"] = "ERROR"
         result["failed_stage"] = stage
@@ -625,9 +874,15 @@ def write_summary(args, root_path, results, run):
     summary = {
         "schema": RESULT_SCHEMA,
         "campaign_fingerprint": args.campaign_fingerprint,
+        "git_commit": args.git_commit,
+        "git_tracked_dirty": args.git_tracked_dirty,
         "weight": args.weight,
         "root_path": list(root_path),
         "projection_cuts": args.projection_cuts,
+        "four_projection_cuts": args.four_projection_cuts,
+        "five_projection_cuts": args.five_projection_cuts,
+        "antipodal_cuts": args.antipodal_cuts,
+        "radial_sphere_cuts": args.radial_sphere_cuts,
         "time_limit_seconds": args.seconds,
         "max_depth": args.max_depth,
         "nodes": len(values),
@@ -653,6 +908,10 @@ def main():
     parser.add_argument("--max-nodes", type=int, default=2000)
     parser.add_argument("--root-path", default="")
     parser.add_argument("--projection-cuts", action="store_true")
+    parser.add_argument("--four-projection-cuts", action="store_true")
+    parser.add_argument("--five-projection-cuts", action="store_true")
+    parser.add_argument("--antipodal-cuts", action="store_true")
+    parser.add_argument("--radial-sphere-cuts", action="store_true")
     parser.add_argument("--keep-cnf", action="store_true")
     parser.add_argument("--rerun", action="store_true")
     parser.add_argument("--generation-seconds", type=int, default=300)
@@ -661,6 +920,7 @@ def main():
 
     root = Path(__file__).resolve().parent.parent
     parsed.root = root
+    parsed.coordinator = Path(__file__).resolve()
     parsed.generator = root / "build" / "generate_cnf"
     parsed.solver = root / ".tools" / "cadical" / "build" / "cadical"
     parsed.verifier = root / "build" / "verify_code"
@@ -674,7 +934,18 @@ def main():
         )
     if parsed.max_depth < len(root_path):
         raise SystemExit("max depth is shallower than the root path")
-    suffix = "projection" if parsed.projection_cuts else "base"
+    enabled_cuts = []
+    if parsed.projection_cuts:
+        enabled_cuts.append("p2")
+    if parsed.four_projection_cuts:
+        enabled_cuts.append("p4")
+    if parsed.five_projection_cuts:
+        enabled_cuts.append("p5")
+    if parsed.antipodal_cuts:
+        enabled_cuts.append("anti")
+    if parsed.radial_sphere_cuts:
+        enabled_cuts.append("radial")
+    suffix = "_".join(enabled_cuts) if enabled_cuts else "base"
     parsed.output = (
         root
         / "research-results"
@@ -698,6 +969,8 @@ def main():
     parsed.generator_sha256 = hash_file(parsed.generator)
     parsed.solver_sha256 = hash_file(parsed.solver)
     parsed.verifier_sha256 = hash_file(parsed.verifier)
+    parsed.coordinator_sha256 = hash_file(parsed.coordinator)
+    parsed.git_commit, parsed.git_tracked_dirty = git_provenance(root)
     parsed.campaign_fingerprint = campaign_fingerprint(parsed)
     parsed.minimum_free_bytes = int(
         parsed.minimum_free_gb * 1024 * 1024 * 1024

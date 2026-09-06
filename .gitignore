@@ -8,3 +8,5 @@ search-results/
 *.drat
 *.lrat
 *.log
+!artifacts/
+!artifacts/**

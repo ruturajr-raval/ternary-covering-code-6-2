@@ -11,12 +11,14 @@ target:
   construction: find_and_verify_16_word_code
   exclusion: certify_no_cover_of_size_at_most_16
 current_claims:
-  - independent_exact_verifier_implemented
+  - standalone_exact_verifier_implemented
   - known_17_word_code_replayed_as_regression_fixture
-  - construction_search_and_cnf_generation_implemented
+  - verified_16_word_near_cover_with_7_holes
+  - construction_compression_repair_and_cnf_generation_implemented
   - exact_recursive_stabilizer_orbit_partition_implemented
-  - proven_symbol_count_and_projection_capacity_cuts_implemented
-  - resumable_fingerprinted_solver_campaign_implemented
+  - antipodal_sphere_lemma_excludes_normalized_maximum_weight_4
+  - proven_symbol_projection_and_radial_capacity_cuts_implemented
+  - resumable_fingerprinted_sat_and_cp_sat_campaigns_implemented
 not_claimed:
   - existence_of_16_word_code
   - nonexistence_of_16_word_code
