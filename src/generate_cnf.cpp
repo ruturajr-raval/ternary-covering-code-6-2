@@ -20,6 +20,7 @@ struct Options {
     int anchor_weight = -1;
     int third_orbit = -1;
     bool list_third_orbits = false;
+    bool branch_manifest_json = false;
     int fourth_orbit = -1;
     bool list_fourth_orbits = false;
     int fifth_orbit = -1;
@@ -76,6 +77,8 @@ Options parse_options(int argc, char** argv) {
                 parse_int(require_value(), "third-center orbit");
         } else if (argument == "--list-third-orbits") {
             options.list_third_orbits = true;
+        } else if (argument == "--branch-manifest-json") {
+            options.branch_manifest_json = true;
         } else if (argument == "--fourth-orbit") {
             options.fourth_orbit =
                 parse_int(require_value(), "fourth-center orbit");
@@ -126,6 +129,7 @@ Options parse_options(int argc, char** argv) {
                 << "  --anchor-weight D    require 11..100..0 of weight D\n"
                 << "  --third-orbit I      fix earliest occupied third orbit\n"
                 << "  --list-third-orbits  print orbit indices and exit\n"
+                << "  --branch-manifest-json print fixed and forbidden centers\n"
                 << "  --fourth-orbit I     fix earliest occupied fourth orbit\n"
                 << "  --list-fourth-orbits print fourth orbits and exit\n"
                 << "  --fifth-orbit I      fix earliest occupied fifth orbit\n"
@@ -163,6 +167,10 @@ Options parse_options(int argc, char** argv) {
         options.anchor_weight < 0) {
         throw std::invalid_argument(
             "third-center orbits require --anchor-weight");
+    }
+    if (options.branch_manifest_json && options.third_orbit < 0) {
+        throw std::invalid_argument(
+            "branch manifest requires --third-orbit");
     }
     if ((options.fourth_orbit >= 0 || options.list_fourth_orbits) &&
         options.third_orbit < 0) {
@@ -1180,6 +1188,58 @@ int main(int argc, char** argv) {
                     "a symmetry-fixed center is also forbidden");
             }
             fixed_centers[static_cast<std::size_t>(center)] = true;
+        }
+
+        if (options.branch_manifest_json) {
+            auto emit_centers = [&](const char* name, auto predicate) {
+                std::cout << ",\"" << name << "\":[";
+                bool first = true;
+                for (int center = 0;
+                     center < ternary_cover::kSpaceSize;
+                     ++center) {
+                    if (!predicate(center)) {
+                        continue;
+                    }
+                    if (!first) {
+                        std::cout << ',';
+                    }
+                    std::cout << center;
+                    first = false;
+                }
+                std::cout << ']';
+            };
+            std::cout
+                << "{\"schema\":1,\"anchor_weight\":"
+                << options.anchor_weight
+                << ",\"third_orbit\":" << options.third_orbit
+                << ",\"representative\":\""
+                << ternary_cover::format_word(
+                       orbits[static_cast<std::size_t>(
+                           options.third_orbit)]
+                           .representative)
+                << '"';
+            emit_centers(
+                "fixed_centers",
+                [&](int center) {
+                    return fixed_centers[
+                        static_cast<std::size_t>(center)];
+                });
+            emit_centers(
+                "forbidden_centers",
+                [&](int center) {
+                    return forbidden_centers[
+                        static_cast<std::size_t>(center)];
+                });
+            emit_centers(
+                "admissible_centers",
+                [&](int center) {
+                    return !fixed_centers[
+                               static_cast<std::size_t>(center)] &&
+                           !forbidden_centers[
+                               static_cast<std::size_t>(center)];
+                });
+            std::cout << "}\n";
+            return 0;
         }
 
         int uncovered_point_clauses = 0;

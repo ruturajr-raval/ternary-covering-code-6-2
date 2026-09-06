@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "project": "ternary-covering-code-6-2",
+  "evaluated_at": "2026-09-06",
+  "candidate_claim": "Exact residual set-cover dual certificates exclude six named branches in the complete 38-branch normalized third-center partition for the size-at-most-16 ternary covering problem K_3(6,2). The certified frontier has 32 unresolved branches.",
+  "gates": {
+    "significant_original_result": true,
+    "complete_exact_value_result": false,
+    "prior_art_refreshed": true,
+    "normalization_lemmas_checked": true,
+    "complete_38_branch_partition_checked": true,
+    "six_exact_certificates_pass": true,
+    "python_verifier_passes": true,
+    "cpp20_independent_verifier_passes": true,
+    "canonical_tables_match": true,
+    "production_generator_manifests_match": true,
+    "strict_integer_type_checks_pass": true,
+    "mutation_tests_pass": true,
+    "claim_scope_audited": true,
+    "limitations_documented": true,
+    "technical_report_ready": true,
+    "multi_reviewer_audit_completed": true,
+    "clean_commit_ci_passes": false,
+    "public_release_created": false,
+    "zenodo_version_doi_assigned": false,
+    "external_review_completed": false
+  },
+  "artifact_decision": "release_candidate",
+  "technical_report_decision": "ready",
+  "theorem_announcement_decision": "ready_after_clean_ci_and_archival",
+  "reason": "The scoped theorem, independent exact verifiers, canonical table comparison, production-generator regression checks, technical report, and multi-review audit pass locally. Hosted clean-commit CI, the public release, and archival DOI remain to be completed. The exact global value remains open, and no external mathematical review is claimed."
+}

@@ -17,6 +17,14 @@ Each case fixes the earliest occupied theorem-eligible orbit of a center with
 weight at most 4. Centers of weight 5 or 6 remain allowed when permitted by
 the maximum-weight anchor.
 
+Exact integer certificates now exclude six branches, leaving 32 unresolved:
+
+| Anchor | Initial cases | Certified exclusions | Unresolved |
+| --- | ---: | ---: | ---: |
+| 5 | 24 | 5 | 19 |
+| 6 | 14 | 1 | 13 |
+| Total | 38 | 6 | 32 |
+
 ## Clean CP-SAT Campaign
 
 Both campaigns used:
@@ -48,6 +56,28 @@ The solver-only infeasible cases are:
 | 6 | 13 | `002222` | 15 |
 
 All other cases reached the time limit with status `UNKNOWN`.
+
+## Certified Follow-Up
+
+The six solver candidates now have independent weighted-hole certificates.
+For each branch, the checker reconstructs the fixed centers, all earlier
+forbidden orbits, every remaining admissible center, and every point left
+uncovered by the fixed centers. Nonnegative integer point weights give a
+total `W` while every admissible center has weighted capacity at most `Q`.
+In each case, `W > 13Q`.
+
+| Anchor | Orbit | Representative | `W` | `Q` | `13Q` |
+| --- | ---: | --- | ---: | ---: | ---: |
+| 5 | 19 | `011110` | 80 | 6 | 78 |
+| 5 | 20 | `011120` | 40 | 3 | 39 |
+| 5 | 21 | `011220` | 40 | 3 | 39 |
+| 5 | 22 | `012220` | 40 | 3 | 39 |
+| 5 | 23 | `022220` | 80 | 6 | 78 |
+| 6 | 13 | `002222` | 132 | 10 | 130 |
+
+These are mathematical branch exclusions. They use exact integer arithmetic
+and ordinary radius-2 coverage only. Details and replay instructions are in
+[`WEIGHTED_BRANCH_CERTIFICATES.md`](WEIGHTED_BRANCH_CERTIFICATES.md).
 
 ## Reproducibility
 
@@ -91,15 +121,15 @@ Reproduction commands:
 
 ## Claim Limit
 
-CP-SAT does not emit a checkable unsatisfiability proof. The six
-`INFEASIBLE` classifications are reproducible solver evidence, not certified
-branch exclusions. This campaign does not prove that a 16-word cover exists
-or does not exist and does not determine `K_3(6,2)`.
+CP-SAT does not emit a checkable unsatisfiability proof. Its six
+`INFEASIBLE` classifications remain solver evidence, but the same six
+branches are now excluded by separate exact certificates. The other 32
+branches remain unresolved. This work does not prove that a 16-word cover
+exists or does not exist and does not determine `K_3(6,2)`.
 
 ## Next Work
 
-1. Re-encode the six solver-infeasible cases with a proof-producing SAT
-   solver and independently replay each proof.
-2. Apply deeper stabilizer-orbit splitting to the 32 unresolved cases.
+1. Apply deeper stabilizer-orbit splitting to the 32 unresolved cases.
+2. Search for additional weighted-hole certificates at deeper nodes.
 3. Continue construction search in parallel, because one verified 16-word
    witness would settle the upper-bound direction immediately.

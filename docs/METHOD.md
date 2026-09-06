@@ -147,6 +147,23 @@ mathematical nonexistence claim.
 The current clean campaign outcomes and fingerprints are recorded in
 `COMPUTATIONAL_STATUS.md`.
 
+## Weighted Branch Certificates
+
+For a normalized third-center branch, three centers are fixed and at most 13
+additional centers may be selected. The weighted-hole method assigns
+nonnegative integer weights to the points left uncovered by the fixed
+centers. If every admissible remaining center covers weight at most `Q` while
+the total hole weight exceeds `13Q`, the branch is impossible.
+
+`tools/verify_branch_certificates.py` reconstructs each branch independently
+from its anchor weight and orbit index. It verifies the earlier-orbit
+exclusions, retains every later or heavier center allowed by the anchor,
+expands the compact point-orbit weights, and evaluates all individual center
+capacities with exact integer arithmetic.
+
+The current certificates exclude six branches and are documented in
+`WEIGHTED_BRANCH_CERTIFICATES.md`.
+
 Campaign exit codes are 0 for a verified witness, 2 for a complete
 solver-only exclusion, 3 for unresolved branches, and 4 for an operational
 error. Signals terminate active solver process groups, persist cancellation
@@ -171,8 +188,8 @@ A construction result requires:
 A nonexistence result requires:
 
 - deterministic and exhaustive symmetry case generation;
-- one proof artifact per terminal case;
-- independent proof replay;
+- one checked proof or exact certificate per terminal case;
+- independent proof or certificate replay;
 - a hash manifest and complete replay commands.
 
 Solver exit status alone is not a certificate.

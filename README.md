@@ -25,8 +25,9 @@ A resolution would change a published covering-code table entry:
 
 The instance is small enough for unusually transparent evidence. A
 construction contains only 16 words and can be checked against every ambient
-word. A nonexistence result can be decomposed into finite symmetry cases,
-proof-producing SAT instances, and independently replayed proof logs.
+word. A nonexistence result can be decomposed into finite symmetry cases
+closed by exact certificates or by proof-producing SAT instances with
+independently replayed proof logs.
 
 ## Verified Progress
 
@@ -39,13 +40,15 @@ The repository currently provides:
 - deterministic CNF and CP-SAT formulations of the exact 16-center problem;
 - recursive stabilizer-orbit branching to arbitrary depth;
 - proved coordinate, projection, radial-sphere, and antipodal capacity cuts;
+- exact integer weighted-hole certificates for six normalized branches;
 - resumable campaigns with source and executable fingerprints, hashed
   instances and logs, plus CP-SAT model and environment fingerprints.
 
-One exact search branch is now closed mathematically. After translating a
-hypothetical 16-cover so that one center is `000000`, its maximum center
-weight cannot be at most 4. The 64 words antipodal to `000000` would receive
-capacity at most `15 * 4 = 60`. Thus only maximum-weight cases 5 and 6 remain.
+One broad normalized branch is closed by a direct counting argument. After
+translating a hypothetical 16-cover so that one center is `000000`, its
+maximum center weight cannot be at most 4. The 64 words antipodal to
+`000000` would receive capacity at most `15 * 4 = 60`. Thus only
+maximum-weight cases 5 and 6 remain.
 
 The radius-3 sphere gives a complementary reduction. If all other centers had
 weight at least 5, they would cover at most `15 * 10 = 150` of its 160 words.
@@ -53,12 +56,21 @@ Every normalized 16-cover therefore contains another center of weight at most
 4. The theorem-driven third-center split has 24 weight-5-anchor orbits and 14
 weight-6-anchor orbits, for 38 live cases rather than 60.
 
-A clean 60-second CP-SAT pass classified 6 of the 38 cases as solver-only
-`INFEASIBLE` and left 32 `UNKNOWN`. These statuses are not proof
-certificates. Exact settings, branch representatives, and fingerprints are
-recorded in [`docs/COMPUTATIONAL_STATUS.md`](docs/COMPUTATIONAL_STATUS.md).
+A clean 60-second CP-SAT pass identified six candidate exclusions. Each now
+has an exact integer-scaled residual set-cover dual certificate that is
+checked over all 729 ambient words and every center allowed by its branch.
+The five weight-5 branches
+represented by `011110`, `011120`, `011220`, `012220`, and `022220`, and the
+weight-6 branch represented by `002222`, are rigorously excluded. The
+normalized frontier is therefore reduced from 38 branches to 32.
 
-This is a rigorous structural reduction, not a new bound on `K_3(6,2)`.
+The proof and exact values are recorded in
+[`docs/WEIGHTED_BRANCH_CERTIFICATES.md`](docs/WEIGHTED_BRANCH_CERTIFICATES.md).
+Campaign settings and fingerprints remain in
+[`docs/COMPUTATIONAL_STATUS.md`](docs/COMPUTATIONAL_STATUS.md).
+
+This is a rigorous certified branch reduction, not a new bound on
+`K_3(6,2)`.
 
 ## Build And Test
 
@@ -72,6 +84,13 @@ Verify the known 17-word certificate and the current near-cover:
 ```bash
 build/verify_code data/reference_17_code.txt
 build/verify_code data/seed_16_near_cover.txt
+```
+
+Verify all six weighted branch certificates:
+
+```bash
+python3 tools/verify_branch_certificates.py
+build/verify_branch_certificates
 ```
 
 Run a parallel construction search:
@@ -157,19 +176,21 @@ make test-cp-sat
 ```
 
 Campaign records are written under `research-results/`, which is intentionally
-excluded from source control. Solver `INFEASIBLE` is exploratory evidence
-only. It becomes a certified exclusion only after a proof artifact is replayed
-by an independent checker. Cached CP-SAT branches are accepted only after the
-current code reconstructs the same serialized model, and interrupted campaigns
-terminate their active solver process groups before returning.
+excluded from source control. Solver `INFEASIBLE` remains exploratory evidence
+only. The six current exclusions are claimed from the separate exact integer
+certificates, not from solver exit status. Cached CP-SAT branches are accepted
+only after the current code reconstructs the same serialized model, and
+interrupted campaigns terminate their active solver process groups before
+returning.
 
 ## Claim Boundary
 
 This project currently claims the implemented and tested search machinery,
 the stated necessary conditions, the verified 17-word certificate, the
 7-hole near-cover, the proof that the normalized maximum-weight-4 branch is
-impossible, the complete 38-case low-weight third-center reduction, and the
-reproducible solver-only campaign record.
+impossible, the complete 38-case low-weight third-center reduction, the exact
+weighted-hole exclusion of six named branches, the resulting 32-branch
+frontier, and the reproducible campaign record.
 
 It does not claim:
 
@@ -177,6 +198,7 @@ It does not claim:
 - nonexistence of a 16-word covering code;
 - the exact value of `K_3(6,2)`;
 - novelty for the known 17-word construction;
+- exclusion of any of the remaining 32 normalized branches;
 - a certified exclusion based only on a solver status.
 
 ## Author

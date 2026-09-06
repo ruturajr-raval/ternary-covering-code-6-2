@@ -1,0 +1,56 @@
+{
+  "version": "0.1.0",
+  "release_status": "release_candidate",
+  "release_date": "2026-09-06",
+  "artifact_status": "verified_six_branch_exclusion",
+  "supported_claim": "Exact residual set-cover dual certificates exclude six named branches in the complete 38-branch normalized third-center partition for the size-at-most-16 ternary covering problem K_3(6,2). The certified frontier has 32 unresolved branches.",
+  "claim_status": "scoped_theorem_global_interval_unchanged",
+  "new_result_status": "six_exact_normalized_branch_exclusions",
+  "artifact_reproducibility_ready": true,
+  "artifact_release_ready": true,
+  "technical_report_release_status": "release_candidate",
+  "external_review_status": "No external mathematical review is claimed.",
+  "technical_report": {
+    "title": "Six Certified Branch Exclusions for the Ternary Covering Problem K_3(6,2)",
+    "manuscript": "paper/main.tex",
+    "submission_metadata": "paper/ARXIV_METADATA.md",
+    "source_archive": "dist/paper/ternary-covering-code-6-2-source.tar.gz",
+    "planned_release_tag": "v0.1.0",
+    "planned_public_repository": "https://github.com/ruturajr-raval/ternary-covering-code-6-2",
+    "candidate_release_assets": {
+      "source": {
+        "name": "ternary-covering-code-6-2-source.tar.gz",
+        "size": 9131,
+        "sha256": "0ad4c0a0fd44c9714f3123673bad13cbc60cebde4569b1073edf304458f42974"
+      }
+    },
+    "pdf_release_policy": "Use the PDF artifact from passed hosted paper CI, inspect every page, and record its final checksum after publication.",
+    "claim_scope": "six exact branch exclusions with unchanged global interval"
+  },
+  "verification": {
+    "python_primary_verifier": "tools/verify_branch_certificates.py",
+    "cpp20_independent_verifier": "src/verify_branch_certificates.cpp",
+    "machine_readable_certificates": "data/weighted_branch_certificates.json",
+    "production_branch_generator": "src/generate_cnf.cpp",
+    "release_manifest": "release-manifest.sha256",
+    "ambient_words": 729,
+    "normalized_branches": 38,
+    "certified_branches": 6,
+    "unresolved_branches": 32,
+    "all_exact_counts_match_between_implementations": true,
+    "canonical_certificate_tables_match": true,
+    "production_generator_branch_sets_match": true,
+    "mutation_tests_pass": true,
+    "pdf_pages_reviewed": 8
+  },
+  "limitations": [
+    "No 15-word or 16-word covering code is constructed.",
+    "Nonexistence of all size-at-most-16 covering codes is not proved.",
+    "The exact value of K_3(6,2) remains open.",
+    "The global interval 15 <= K_3(6,2) <= 17 remains unchanged.",
+    "The remaining 32 normalized branches are not excluded.",
+    "Solver exit status is not used as a proof.",
+    "No external mathematical review is claimed."
+  ],
+  "last_reviewed": "2026-09-06"
+}

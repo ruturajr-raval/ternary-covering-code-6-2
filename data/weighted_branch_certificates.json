@@ -1,0 +1,118 @@
+{
+  "schema": 1,
+  "target_centers": 16,
+  "certificates": [
+    {
+      "anchor_weight": 5,
+      "third_orbit": 19,
+      "representative": "011110",
+      "expected_admissible_centers": 270,
+      "expected_holes": 549,
+      "expected_total_weight": 80,
+      "expected_max_capacity": 6,
+      "weights": [
+        {"key": "001|202|000|0", "weight": 1, "orbit_size": 6},
+        {"key": "001|310|000|1", "weight": 2, "orbit_size": 8},
+        {"key": "010|202|000|0", "weight": 1, "orbit_size": 6},
+        {"key": "010|310|000|1", "weight": 2, "orbit_size": 8},
+        {"key": "100|202|000|1", "weight": 1, "orbit_size": 12},
+        {"key": "100|211|000|1", "weight": 1, "orbit_size": 24}
+      ]
+    },
+    {
+      "anchor_weight": 5,
+      "third_orbit": 20,
+      "representative": "011120",
+      "expected_admissible_centers": 265,
+      "expected_holes": 541,
+      "expected_total_weight": 40,
+      "expected_max_capacity": 3,
+      "weights": [
+        {"key": "001|300|001|1", "weight": 2, "orbit_size": 2},
+        {"key": "001|300|010|1", "weight": 2, "orbit_size": 2},
+        {"key": "010|300|001|1", "weight": 2, "orbit_size": 2},
+        {"key": "010|300|010|1", "weight": 2, "orbit_size": 2},
+        {"key": "100|102|100|1", "weight": 1, "orbit_size": 6},
+        {"key": "100|111|100|1", "weight": 1, "orbit_size": 12},
+        {"key": "100|120|100|1", "weight": 1, "orbit_size": 6}
+      ]
+    },
+    {
+      "anchor_weight": 5,
+      "third_orbit": 21,
+      "representative": "011220",
+      "expected_admissible_centers": 245,
+      "expected_holes": 528,
+      "expected_total_weight": 40,
+      "expected_max_capacity": 3,
+      "weights": [
+        {"key": "001|101|200|1", "weight": 1, "orbit_size": 4},
+        {"key": "001|110|200|1", "weight": 1, "orbit_size": 4},
+        {"key": "010|101|200|1", "weight": 1, "orbit_size": 4},
+        {"key": "010|110|200|1", "weight": 1, "orbit_size": 4},
+        {"key": "100|002|200|1", "weight": 1, "orbit_size": 2},
+        {"key": "100|011|200|1", "weight": 1, "orbit_size": 4},
+        {"key": "100|020|200|1", "weight": 1, "orbit_size": 2},
+        {"key": "100|200|002|1", "weight": 2, "orbit_size": 2},
+        {"key": "100|200|011|1", "weight": 2, "orbit_size": 4},
+        {"key": "100|200|020|1", "weight": 2, "orbit_size": 2}
+      ]
+    },
+    {
+      "anchor_weight": 5,
+      "third_orbit": 22,
+      "representative": "012220",
+      "expected_admissible_centers": 215,
+      "expected_holes": 522,
+      "expected_total_weight": 40,
+      "expected_max_capacity": 3,
+      "weights": [
+        {"key": "001|001|300|1", "weight": 2, "orbit_size": 2},
+        {"key": "001|010|300|1", "weight": 2, "orbit_size": 2},
+        {"key": "010|001|300|1", "weight": 2, "orbit_size": 2},
+        {"key": "010|010|300|1", "weight": 2, "orbit_size": 2},
+        {"key": "100|100|102|1", "weight": 1, "orbit_size": 6},
+        {"key": "100|100|111|1", "weight": 1, "orbit_size": 12},
+        {"key": "100|100|120|1", "weight": 1, "orbit_size": 6}
+      ]
+    },
+    {
+      "anchor_weight": 5,
+      "third_orbit": 23,
+      "representative": "022220",
+      "expected_admissible_centers": 195,
+      "expected_holes": 516,
+      "expected_total_weight": 80,
+      "expected_max_capacity": 6,
+      "weights": [
+        {"key": "001|000|211|0", "weight": 1, "orbit_size": 12},
+        {"key": "001|000|301|1", "weight": 2, "orbit_size": 8},
+        {"key": "010|000|211|0", "weight": 1, "orbit_size": 12},
+        {"key": "010|000|301|1", "weight": 2, "orbit_size": 8},
+        {"key": "100|000|121|0", "weight": 1, "orbit_size": 12},
+        {"key": "100|000|220|1", "weight": 1, "orbit_size": 12}
+      ]
+    },
+    {
+      "anchor_weight": 6,
+      "third_orbit": 13,
+      "representative": "002222",
+      "expected_admissible_centers": 269,
+      "expected_holes": 516,
+      "expected_total_weight": 132,
+      "expected_max_capacity": 10,
+      "weights": [
+        {"key": "002|301", "weight": 1, "orbit_size": 4},
+        {"key": "002|310", "weight": 1, "orbit_size": 4},
+        {"key": "011|310", "weight": 1, "orbit_size": 8},
+        {"key": "020|301", "weight": 1, "orbit_size": 4},
+        {"key": "101|202", "weight": 1, "orbit_size": 12},
+        {"key": "101|211", "weight": 1, "orbit_size": 24},
+        {"key": "101|220", "weight": 1, "orbit_size": 12},
+        {"key": "110|211", "weight": 2, "orbit_size": 24},
+        {"key": "200|121", "weight": 1, "orbit_size": 12},
+        {"key": "200|130", "weight": 1, "orbit_size": 4}
+      ]
+    }
+  ]
+}

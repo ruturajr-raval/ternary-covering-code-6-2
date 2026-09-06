@@ -46,12 +46,19 @@ https://github.com/florath/covering-codes-lean/blob/main/docs/failures/K_3_6_2.m
 Those notes explicitly identify proof-logged cube-and-conquer and verified
 finite search as remaining directions.
 
+The same public failure note reports that its third-orbit residual LP scans
+pruned `0/34` maximum-weight-5 cases and `0/26` maximum-weight-6 cases. The
+present work uses a different theorem-driven 24-plus-14 orbit partition and
+exact residual set-cover dual certificates. Six branches in that reduced
+partition are certified impossible.
+
 ## Novelty Check
 
 As of 2026-09-06, the reviewed public sources expose neither:
 
 - a verified 16-word code; nor
-- a proof that every radius-2 cover needs at least 17 centers.
+- a proof that every radius-2 cover needs at least 17 centers; nor
+- the six weighted branch certificates recorded in this repository.
 
 This is a public-source search result, not evidence that unpublished or
 unindexed work does not exist.

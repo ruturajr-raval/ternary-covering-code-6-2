@@ -1,7 +1,9 @@
 project: ternary-covering-code-6-2
 author: Ruturaj R Raval
+affiliation: Independent Researcher
 orcid: 0000-0003-4930-8981
-status: active_research
+updated: 2026-09-06
+status: release_candidate_scoped_result
 problem:
   notation: K_3(6,2)
   published_interval:
@@ -20,7 +22,9 @@ current_claims:
   - radius_three_lemma_gives_complete_38_case_normalized_anchor_5_or_6_split
   - proven_symbol_projection_and_radial_capacity_cuts_implemented
   - resumable_fingerprinted_sat_and_cp_sat_campaigns_implemented
-  - clean_38_case_campaign_records_6_solver_only_infeasible_and_32_unknown
+  - exact_integer_weighted_hole_certificates_exclude_6_normalized_branches
+  - certified_normalized_frontier_has_32_unresolved_branches
+  - clean_38_case_campaign_record_reproduced
 not_claimed:
   - existence_of_16_word_code
   - nonexistence_of_16_word_code
@@ -31,7 +35,13 @@ evidence_policy:
     - direct_exhaustive_coverage_check
     - independent_implementation_check
   exclusion:
-    - deterministic_case_generation
-    - proof_log_per_case
-    - independent_proof_replay
-    - artifact_hash_manifest
+    exact_certificate:
+      - deterministic_case_generation
+      - exact_integer_weighted_capacity_certificate
+      - exhaustive_point_and_center_replay
+      - independent_implementation_check
+    proof_logged_search:
+      - deterministic_case_generation
+      - proof_log_per_case
+      - independent_proof_replay
+      - artifact_hash_manifest

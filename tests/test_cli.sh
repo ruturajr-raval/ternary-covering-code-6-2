@@ -3,6 +3,7 @@ set -euo pipefail
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$root"
+python_bin="${PYTHON:-python3}"
 
 reference_output="$(build/verify_code data/reference_17_code.txt)"
 grep -q '^centers: 17$' <<<"$reference_output"
@@ -45,7 +46,7 @@ build/generate_cnf \
 grep -q \
   '^c reduced branch core: 2 fixed centers, 64 forbidden centers, 583 unresolved point clauses$' \
   "$cnf_output"
-python3 tests/test_cnf_semantics.py "$cnf_output"
+"$python_bin" tests/test_cnf_semantics.py "$cnf_output"
 
 build/generate_cnf \
   --centers 16 \
@@ -156,8 +157,23 @@ test "$at_most_orbit_status" -eq 2
 test "$wrong_cardinality_orbit_status" -eq 2
 test "$overlong_path_status" -eq 2
 
-python3 tests/test_recursive_cube_search.py
-python3 tests/test_cp_sat_campaign.py
-python3 tests/test_package_campaign.py
+"$python_bin" tests/test_recursive_cube_search.py
+"$python_bin" tests/test_cp_sat_campaign.py
+"$python_bin" tests/test_package_campaign.py
+"$python_bin" tests/test_branch_certificates.py
+python_certificate_output="$(
+  "$python_bin" tools/verify_branch_certificates.py
+)"
+cpp_certificate_output="$(build/verify_branch_certificates)"
+test "$python_certificate_output" = "$cpp_certificate_output"
+grep -q '^all weighted branch certificates verified$' \
+  <<<"$python_certificate_output"
+python_certificate_data="$(
+  "$python_bin" tools/verify_branch_certificates.py --dump-certificate-data
+)"
+cpp_certificate_data="$(
+  build/verify_branch_certificates --dump-certificate-data
+)"
+test "$python_certificate_data" = "$cpp_certificate_data"
 
 echo "all tests passed"

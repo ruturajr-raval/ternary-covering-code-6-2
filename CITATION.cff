@@ -1,0 +1,30 @@
+cff-version: 1.2.0
+message: "Please cite the technical report and the archived repository release."
+title: "Six Certified Branch Exclusions for the Ternary Covering Problem K_3(6,2)"
+type: software
+abstract: "Exact residual set-cover dual certificates exclude six normalized branches of the unresolved ternary covering-code problem K_3(6,2). Independent Python and C++20 implementations verify every certificate over all 729 ambient words and every admissible center. The normalized frontier is reduced from 38 branches to 32, while the global interval 15 <= K_3(6,2) <= 17 remains unchanged."
+authors:
+  - family-names: Raval
+    given-names: Ruturaj R
+    affiliation: Independent Researcher
+    orcid: "https://orcid.org/0000-0003-4930-8981"
+repository-code: "https://github.com/ruturajr-raval/ternary-covering-code-6-2"
+keywords:
+  - covering codes
+  - coding theory
+  - ternary Hamming space
+  - set cover duality
+  - extremal combinatorics
+  - computer-assisted proof
+license: MIT
+version: 0.1.0
+date-released: 2026-09-06
+preferred-citation:
+  type: article
+  title: "Six Certified Branch Exclusions for the Ternary Covering Problem K_3(6,2)"
+  authors:
+    - family-names: Raval
+      given-names: Ruturaj R
+      affiliation: Independent Researcher
+      orcid: "https://orcid.org/0000-0003-4930-8981"
+  year: 2026

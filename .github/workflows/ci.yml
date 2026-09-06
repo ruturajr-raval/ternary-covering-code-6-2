@@ -16,6 +16,12 @@ jobs:
         run: make
       - name: Test
         run: make test
+      - name: Rebuild release manifest
+        run: make release-manifest
+      - name: Assert release manifest is deterministic
+        run: git diff --exit-code -- release-manifest.sha256
+      - name: Verify release manifest
+        run: make verify-release-manifest
 
   cp-sat-model:
     runs-on: ubuntu-24.04
@@ -58,3 +64,45 @@ jobs:
           test "$status" -eq 3
           grep -q '"full_manifest_covered": false' \
             research-results/ci-campaign/summary.json
+
+  paper:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Install TeX
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y latexmk texlive-latex-extra lmodern
+      - name: Build technical report
+        run: make paper-build
+      - name: Build deterministic source bundle
+        run: make paper-bundle
+      - name: Verify source release asset
+        run: make verify-release-assets
+      - name: Inspect source bundle
+        run: tar -tzf dist/paper/ternary-covering-code-6-2-source.tar.gz
+      - name: Compile from release source bundle
+        run: |
+          mkdir -p build/source-replay build/source-replay-output
+          tar -xzf \
+            dist/paper/ternary-covering-code-6-2-source.tar.gz \
+            -C build/source-replay
+          cd build/source-replay
+          latexmk -pdf -interaction=nonstopmode -halt-on-error \
+            -file-line-error \
+            -output-directory=../source-replay-output \
+            paper/main.tex
+      - name: Upload report assets
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ternary-covering-code-6-2-report
+          path: |
+            build/paper/main.pdf
+            dist/paper/ternary-covering-code-6-2-source.tar.gz
+          if-no-files-found: error
+          retention-days: 30
+      - name: Assert no tracked files changed
+        if: always()
+        run: git diff --exit-code

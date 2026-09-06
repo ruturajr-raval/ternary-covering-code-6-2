@@ -1,0 +1,557 @@
+\documentclass[11pt]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{fancyvrb}
+\usepackage{url}
+\usepackage[
+  colorlinks=true,
+  linkcolor=blue!55!black,
+  citecolor=blue!55!black,
+  urlcolor=blue!55!black,
+  pdftitle={Six Certified Branch Exclusions for the Ternary Covering Problem K3(6,2)},
+  pdfauthor={Ruturaj R Raval},
+  pdfsubject={Exact computational coding theory and finite covering codes},
+  pdfkeywords={covering codes, ternary codes, set cover duality, coding theory, computational combinatorics}
+]{hyperref}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\Hspace}{\mathcal{H}}
+\newcommand{\dist}{d_{\mathrm H}}
+\newcommand{\wt}{\operatorname{wt}}
+\newcommand{\codeword}[1]{\texttt{#1}}
+
+\title{Six Certified Branch Exclusions\\
+for the Ternary Covering Problem \(K_3(6,2)\)}
+\author{%
+  Ruturaj R Raval\\
+  \small Independent Researcher\\
+  \small ORCID:
+  \href{https://orcid.org/0000-0003-4930-8981}
+       {\texttt{0000-0003-4930-8981}}
+}
+\date{September 6, 2026}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Let \(K_3(6,2)\) be the minimum number of radius-two Hamming balls needed
+to cover the ternary space \(\{0,1,2\}^6\).  The published interval remains
+\(15\leq K_3(6,2)\leq 17\).  A hypothetical cover with at most sixteen
+centers can be translated to contain \(\codeword{000000}\).  An antipodal
+sphere argument excludes normalized maximum weight at most four, and a
+radius-three sphere argument forces an additional center of weight at most
+four.  Stabilizer orbits then give 24 normalized third-center branches for
+maximum weight five and 14 for maximum weight six.
+
+This report certifies six of those 38 branches as impossible.  For each
+branch, nonnegative integer weights are assigned to the points not covered
+by its three fixed centers.  Every remaining admissible center covers
+weighted capacity at most \(Q\), while the total weight \(W\) satisfies
+\(W>13Q\).  After scaling by \(Q\), these are exact feasible dual solutions
+for the residual fractional set-cover relaxations with objective greater
+than thirteen.  Five weight-five branches and one weight-six branch are
+therefore excluded.  Independent Python and C++20 verifiers reconstruct
+the complete branch definitions, evaluate all 729 ambient words and every
+admissible center, and agree on every exact count.  The normalized frontier
+is reduced from 38 branches to 32.  No new global bound is claimed.
+\end{abstract}
+
+\section{Introduction}
+
+A \(q\)-ary covering code of length \(n\) and radius \(R\) is a subset of
+\(\{0,\ldots,q-1\}^n\) whose radius-\(R\) Hamming balls cover the entire
+space.  The minimum possible cardinality is denoted by \(K_q(n,R)\).
+Covering codes connect coding theory, finite geometry, domination,
+set cover, and exact optimization.
+
+This report studies the unresolved value \(K_3(6,2)\).  The historical
+covering-code table records
+\[
+  15\leq K_3(6,2)\leq 17
+\]
+\cite{keri-table}.  The upper bound is attributed to work of
+H\"am\"al\"ainen and Rankinen from 1991
+\cite{hamalainen-rankinen-1991}; the lower bound is recorded in the updated
+binary and ternary mixed-code table of Bertolo, \"Osterg{\aa}rd, and Weakley
+from 2004 \cite{bertolo-ostergard-weakley-2004}.  A modern Lean
+formalization supplies an explicit checked 17-word construction
+\cite{covering-codes-lean-upper}.
+
+Recent semidefinite methods improve many covering-code lower bounds, but
+their numerical value for this cell remains below the established integer
+lower bound fifteen \cite{gijswijt-polak-2026}.  Public exploratory notes
+for the exact 16-center case report feasible anchored relaxations and
+third-orbit residual LP scans that pruned none of their tested branches
+\cite{covering-codes-lean-failures}.  They identify verified finite search
+and proof-producing branch decompositions as natural next directions.
+
+The contribution here is a scoped exact result.  The normalized
+size-at-most-16 problem is first reduced to 38 third-center branches.  Six
+branches then receive short residual set-cover dual certificates.  The
+distinction between this result and a complete solution is maintained
+throughout:
+
+\begin{itemize}[leftmargin=2em]
+  \item six named normalized branches are rigorously excluded;
+  \item 32 normalized third-center branches remain unresolved;
+  \item no 16-word covering code is constructed;
+  \item no complete exclusion of size-at-most-16 covers is proved; and
+  \item the global interval \(15\leq K_3(6,2)\leq 17\) is unchanged.
+\end{itemize}
+
+\section{Definitions}
+
+Let
+\[
+  \Hspace=\{0,1,2\}^6.
+\]
+For \(x,y\in\Hspace\), write
+\[
+  \dist(x,y)=|\{i:x_i\neq y_i\}|
+\]
+for Hamming distance and
+\[
+  B_2(c)=\{x\in\Hspace:\dist(x,c)\leq 2\}
+\]
+for the radius-two ball centered at \(c\).  A set \(C\subseteq\Hspace\)
+is a radius-two covering code when
+\[
+  \bigcup_{c\in C}B_2(c)=\Hspace.
+\]
+
+The ambient space contains \(3^6=729\) words, and every radius-two ball
+contains
+\[
+  1+\binom61 2+\binom62 2^2=73
+\]
+words.
+
+For \(x=(x_1,\ldots,x_6)\), define its weight by
+\[
+  \wt(x)=|\{i:x_i\neq 0\}|.
+\]
+Translation by a word of \(\Hspace\), coordinate permutations, and
+independent symbol permutations in each coordinate preserve Hamming
+distance and covering.
+
+\section{The normalized 38-branch frontier}
+
+\subsection{Excluding maximum weight at most four}
+
+\begin{lemma}[Antipodal sphere]
+\label{lem:antipodal}
+In a radius-two cover with at most sixteen centers, every selected center
+has another selected center at distance at least five.
+\end{lemma}
+
+\begin{proof}
+Fix a selected center \(z\).  The sphere of radius six around \(z\) has
+64 words.  A radius-two ball whose center is at distance four, five, or six
+from \(z\) covers respectively 4, 12, or 22 words of that sphere.  A center
+at smaller distance covers none.
+
+If all other centers were at distance at most four from \(z\), at most
+fifteen balls would contribute, each with capacity at most four.  Their
+total capacity would be at most \(15\cdot4=60<64\), a contradiction.
+\end{proof}
+
+Translate a selected center to \(\codeword{000000}\).  Lemma
+\ref{lem:antipodal} implies that the translated code contains a word of
+weight at least five.  Choosing a maximum-weight word and normalizing its
+nonzero symbols gives the anchor
+\[
+  a_d=1^d0^{6-d}
+\]
+with \(d\in\{5,6\}\).  Thus the normalized maximum-weight-at-most-four
+branch is impossible.
+
+\subsection{A low-weight third center}
+
+\begin{lemma}[Radius-three sphere]
+\label{lem:radius-three}
+In a radius-two cover with at most sixteen centers, every selected center
+has another selected center at distance at most four.
+\end{lemma}
+
+\begin{proof}
+Fix a selected center \(z\).  Its radius-three sphere has 160 words.  A
+radius-two ball centered at distances five and six from \(z\) covers at
+most 10 and 0 of those words, respectively.  If all other centers were at
+distance at least five, their total capacity would be at most
+\[
+  15\cdot10=150<160,
+\]
+a contradiction.
+\end{proof}
+
+Apply Lemma \ref{lem:radius-three} to \(\codeword{000000}\).  Besides the
+anchor of weight five or six, the code contains a third center of weight at
+most four.
+
+Fix \(d\in\{5,6\}\) and the pair
+\(\{\codeword{000000},a_d\}\).  Its pointwise stabilizer permutes the first
+\(d\) coordinates, permutes the remaining coordinates, and swaps symbols
+1 and 2 independently outside the anchor support.  The orbit of a candidate
+third center is determined by:
+
+\begin{itemize}[leftmargin=2em]
+  \item its counts of symbols 0, 1, and 2 in the first \(d\) coordinates;
+  \item its number of nonzero symbols in the final \(6-d\) coordinates.
+\end{itemize}
+
+Restricting only the canonical third center to weight at most four gives
+24 orbits for \(d=5\) and 14 orbits for \(d=6\).  Choosing the earliest
+occupied orbit and mapping one selected member to its canonical
+representative gives a complete nonoverlapping 38-branch split.  Fourth and
+later centers retain every weight permitted by the anchor.
+
+\section{Residual set-cover dual certificates}
+
+Fix one normalized branch.  Let \(t\) be its third-center representative
+and let \(E\) be the union of all earlier third-center orbits.  Define
+\[
+  F=\{\codeword{000000},a_d,t\}
+\]
+and
+\[
+  U=\{c\in\Hspace:\wt(c)\leq d\}\setminus(F\cup E).
+\]
+The set \(U\) includes every remaining center permitted by the branch:
+unused members of the selected orbit, all later low-weight orbits, and every
+heavier center allowed by the maximum-weight anchor.
+
+Let
+\[
+  H=\{p\in\Hspace:\dist(p,f)>2\text{ for every }f\in F\}
+\]
+be the holes left by the three fixed centers.
+
+\begin{theorem}[Weighted residual dual certificate]
+\label{thm:dual}
+Suppose there are nonnegative weights
+\(w:H\rightarrow\mathbb{Z}_{\geq0}\) and an integer \(Q>0\) such that
+\[
+  K(c):=
+  \sum_{\substack{p\in H\\\dist(p,c)\leq2}}w(p)
+  \leq Q
+  \qquad\text{for every }c\in U,
+\]
+while
+\[
+  W:=\sum_{p\in H}w(p)>13Q.
+\]
+Then the branch contains no radius-two covering code with at most sixteen
+centers.
+\end{theorem}
+
+\begin{proof}
+Any branch cover contains the three fixed centers and at most thirteen
+additional centers \(T\subseteq U\).  Every \(p\in H\) must be covered by
+at least one member of \(T\).  Since all weights are nonnegative,
+\[
+  W
+  \leq
+  \sum_{c\in T}
+  \sum_{\substack{p\in H\\\dist(p,c)\leq2}}w(p)
+  =
+  \sum_{c\in T}K(c)
+  \leq
+  |T|Q
+  \leq
+  13Q,
+\]
+contradicting \(W>13Q\).
+\end{proof}
+
+\begin{remark}
+After scaling by \(Q\), the values \(w(p)/Q\) form a feasible dual solution
+for the residual fractional set-cover relaxation.  The objective value is
+\(W/Q>13\), so the residual branch needs more than thirteen centers even
+fractionally.
+\end{remark}
+
+\section{Six exact certificates}
+
+The six certified branches and their exact values are listed in Table
+\ref{tab:certificates}.
+
+\begin{table}[htbp]
+\centering
+\caption{Exact residual dual certificates.}
+\label{tab:certificates}
+\begin{tabular}{rrrrrrrr}
+\toprule
+Anchor & Orbit & Representative & \(|U|\) & \(|H|\) & \(W\) & \(Q\) & \(13Q\)\\
+\midrule
+5 & 19 & \codeword{011110} & 270 & 549 & 80 & 6 & 78\\
+5 & 20 & \codeword{011120} & 265 & 541 & 40 & 3 & 39\\
+5 & 21 & \codeword{011220} & 245 & 528 & 40 & 3 & 39\\
+5 & 22 & \codeword{012220} & 215 & 522 & 40 & 3 & 39\\
+5 & 23 & \codeword{022220} & 195 & 516 & 80 & 6 & 78\\
+6 & 13 & \codeword{002222} & 269 & 516 & 132 & 10 & 130\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The five weight-five certificates all have dual objective
+\[
+  \frac{W}{Q}=\frac{40}{3}>13.
+\]
+The weight-six certificate has objective
+\[
+  \frac{W}{Q}=\frac{66}{5}>13.
+\]
+Theorem \ref{thm:dual} therefore excludes all six branches.
+
+\subsection{Compact orbit notation}
+
+For a weight-five branch, partition the first five coordinates according to
+whether \(t_i\) is 0, 1, or 2.  For each group, record the counts of symbols
+0, 1, and 2 in the ambient point.  These three count blocks are followed by
+a bit indicating whether coordinate 6 is zero or nonzero.  Thus a key such
+as
+\[
+  \codeword{001|202|000|0}
+\]
+describes one orbit of ambient points under the stabilizer of the three
+fixed centers.
+
+For the weight-six branch \(t=\codeword{002222}\), the two blocks record
+symbol counts in the two coordinates where \(t_i=0\) and the four
+coordinates where \(t_i=2\).
+
+Appendix \ref{app:weights} lists every positive-weight orbit.  Unlisted holes
+have weight zero.
+
+\section{Independent exact verification}
+
+Two implementations verify the certificates:
+
+\begin{itemize}[leftmargin=2em]
+  \item a Python checker reads the machine-readable JSON certificate file;
+  \item an independent C++20 checker contains a separately encoded
+        certificate table and reconstructs the geometry independently.
+\end{itemize}
+
+For every branch, each checker:
+
+\begin{enumerate}[leftmargin=2em]
+  \item reconstructs the complete weight-at-most-four third-center orbit
+        partition;
+  \item validates the branch representative and all earlier forbidden
+        orbits;
+  \item retains every remaining center of weight at most the anchor weight;
+  \item reconstructs all holes left by the three fixed centers;
+  \item expands every positive-weight point orbit and checks its size;
+  \item evaluates \(W\) and \(K(c)\) for every individual \(c\in U\); and
+  \item checks the strict integer inequality \(W>13Q\).
+\end{enumerate}
+
+The implementations produce byte-identical summaries:
+
+\begin{Verbatim}[fontsize=\small]
+w5 orbit 19 011110: |U|=270 |H|=549 W=80 Q=6 13Q=78 margin=2
+w5 orbit 20 011120: |U|=265 |H|=541 W=40 Q=3 13Q=39 margin=1
+w5 orbit 21 011220: |U|=245 |H|=528 W=40 Q=3 13Q=39 margin=1
+w5 orbit 22 012220: |U|=215 |H|=522 W=40 Q=3 13Q=39 margin=1
+w5 orbit 23 022220: |U|=195 |H|=516 W=80 Q=6 13Q=78 margin=2
+w6 orbit 13 002222: |U|=269 |H|=516 W=132 Q=10 13Q=130 margin=2
+all weighted branch certificates verified
+\end{Verbatim}
+
+A second canonical dump requires the JSON certificate data and the separately
+encoded C++20 table to agree entry for entry.  For all six branches, the
+fixed, forbidden, and admissible center sets reconstructed by the Python
+checker are also compared with manifests emitted by the production CNF
+generator.
+
+Mutation tests alter representatives, point weights, numeric types, orbit
+sizes, expected totals, capacity bounds, and key uniqueness.  Every malformed
+certificate produced by these mutation classes is rejected.
+
+The primary replay commands are:
+
+\begin{Verbatim}[fontsize=\small]
+make
+python3 tools/verify_branch_certificates.py
+build/verify_branch_certificates
+make test
+\end{Verbatim}
+
+\section{Significance and limitations}
+
+The result supplies exact local lower bounds inside a complete normalized
+partition.  Within each certified branch, the three fixed centers require at
+least fourteen additional centers, so any cover in that branch has at least
+seventeen centers.
+
+The certificates are reusable in deeper search.  A branch-and-bound, SAT,
+MILP, or exact-cover implementation may reject any node whose normalized
+ancestor is one of the six certified branches.  The small integer dual
+weights also provide regression instances for set-cover preprocessing and
+symmetry handling.
+
+The limitations are equally explicit:
+
+\begin{itemize}[leftmargin=2em]
+  \item the six branches are only part of the normalized 38-branch frontier;
+  \item 19 weight-five branches and 13 weight-six branches remain unresolved;
+  \item the certificates do not rule out a 16-word cover in another branch;
+  \item no 15-word or 16-word cover is constructed; and
+  \item the exact value of \(K_3(6,2)\) remains open.
+\end{itemize}
+
+\section{Conclusion}
+
+Elementary sphere-capacity arguments reduce the normalized size-at-most-16
+problem for \(K_3(6,2)\) to 38 third-center branches.  Exact residual
+set-cover dual certificates exclude six of those branches, with independent
+Python and C++20 replay over the full ternary space.  The certified
+normalized frontier now contains 32 unresolved branches.
+
+The next finite step is to apply deeper stabilizer-orbit splitting to those
+32 branches and search for additional exact dual certificates.  Independent
+construction search remains essential because one verified 16-word cover
+would settle the upper-bound direction immediately.
+
+\appendix
+
+\section{Positive-weight point orbits}
+\label{app:weights}
+
+Each entry below has the form
+\[
+  \texttt{orbit-key : weight (orbit-size)}.
+\]
+
+\subsection*{\(\codeword{011110}\)}
+\begin{Verbatim}[fontsize=\small]
+001|202|000|0 : 1 (6)
+001|310|000|1 : 2 (8)
+010|202|000|0 : 1 (6)
+010|310|000|1 : 2 (8)
+100|202|000|1 : 1 (12)
+100|211|000|1 : 1 (24)
+\end{Verbatim}
+
+\subsection*{\(\codeword{011120}\)}
+\begin{Verbatim}[fontsize=\small]
+001|300|001|1 : 2 (2)
+001|300|010|1 : 2 (2)
+010|300|001|1 : 2 (2)
+010|300|010|1 : 2 (2)
+100|102|100|1 : 1 (6)
+100|111|100|1 : 1 (12)
+100|120|100|1 : 1 (6)
+\end{Verbatim}
+
+\subsection*{\(\codeword{011220}\)}
+\begin{Verbatim}[fontsize=\small]
+001|101|200|1 : 1 (4)
+001|110|200|1 : 1 (4)
+010|101|200|1 : 1 (4)
+010|110|200|1 : 1 (4)
+100|002|200|1 : 1 (2)
+100|011|200|1 : 1 (4)
+100|020|200|1 : 1 (2)
+100|200|002|1 : 2 (2)
+100|200|011|1 : 2 (4)
+100|200|020|1 : 2 (2)
+\end{Verbatim}
+
+\subsection*{\(\codeword{012220}\)}
+\begin{Verbatim}[fontsize=\small]
+001|001|300|1 : 2 (2)
+001|010|300|1 : 2 (2)
+010|001|300|1 : 2 (2)
+010|010|300|1 : 2 (2)
+100|100|102|1 : 1 (6)
+100|100|111|1 : 1 (12)
+100|100|120|1 : 1 (6)
+\end{Verbatim}
+
+\subsection*{\(\codeword{022220}\)}
+\begin{Verbatim}[fontsize=\small]
+001|000|211|0 : 1 (12)
+001|000|301|1 : 2 (8)
+010|000|211|0 : 1 (12)
+010|000|301|1 : 2 (8)
+100|000|121|0 : 1 (12)
+100|000|220|1 : 1 (12)
+\end{Verbatim}
+
+\subsection*{\(\codeword{002222}\)}
+\begin{Verbatim}[fontsize=\small]
+002|301 : 1 (4)
+002|310 : 1 (4)
+011|310 : 1 (8)
+020|301 : 1 (4)
+101|202 : 1 (12)
+101|211 : 1 (24)
+101|220 : 1 (12)
+110|211 : 2 (24)
+200|121 : 1 (12)
+200|130 : 1 (4)
+\end{Verbatim}
+
+\begin{thebibliography}{9}
+
+\bibitem{keri-table}
+G.~K\'eri,
+\emph{Tables for covering codes},
+online table,
+\url{https://old.sztaki.hu/~keri/codes/3_tables.pdf},
+accessed September 6, 2026.
+
+\bibitem{hamalainen-rankinen-1991}
+H.~H\"am\"al\"ainen and S.~Rankinen,
+\emph{Upper bounds for football pool problems and mixed covering codes},
+Journal of Combinatorial Theory, Series A 56 (1991), 84--95.
+\url{https://doi.org/10.1016/0097-3165(91)90024-B}.
+
+\bibitem{bertolo-ostergard-weakley-2004}
+R.~Bertolo, P.~R.~J.~\"Osterg{\aa}rd, and W.~D.~Weakley,
+\emph{An updated table of binary/ternary mixed covering codes},
+Journal of Combinatorial Designs 12 (2004), 157--176.
+\url{https://doi.org/10.1002/jcd.20008}.
+
+\bibitem{gijswijt-polak-2026}
+D.~Gijswijt and S.~Polak,
+\emph{Semidefinite lower bounds for covering codes},
+arXiv:2504.01932v2, 2026.
+\url{https://arxiv.org/abs/2504.01932}.
+
+\bibitem{covering-codes-lean-upper}
+A.~Florath,
+\emph{covering-codes-lean: explicit upper bound for \(K_3(6,2)\)},
+file \path{CoveringCodes/Database/Sources/SmallExplicitUpper/K_3_6_2.lean},
+GitHub repository, 2026.
+\url{https://github.com/florath/covering-codes-lean}.
+
+\bibitem{covering-codes-lean-failures}
+A.~Florath,
+\emph{Failed attempts for \(K_3(6,2)\)},
+file \path{docs/failures/K_3_6_2.md},
+covering-codes-lean project notes, 2026.
+\url{https://github.com/florath/covering-codes-lean}.
+
+\end{thebibliography}
+
+\end{document}

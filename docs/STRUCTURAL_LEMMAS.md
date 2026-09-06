@@ -226,8 +226,47 @@ remain necessary rather than sufficient. The current 7-hole near-cover
 satisfies the complete radial inequalities, so higher-order branch structure
 is still required.
 
+## Weighted-Hole Branch Exclusions
+
+Fix one normalized third-center branch. Let `F` contain its three fixed
+centers, let `E` contain all earlier third-center orbits, and let `U` contain
+every center of weight at most the anchor weight outside `F` and `E`. Let `H`
+be the points farther than 2 from every member of `F`.
+
+For nonnegative integer weights `w(p)` on `H`, define
+
+```text
+W = sum_{p in H} w(p)
+K(c) = sum_{p in H, distance(p,c) <= 2} w(p).
+```
+
+If `K(c) <= Q` for every `c` in `U`, any branch cover with at most 16 centers
+would use at most 13 members of `U` and satisfy
+
+```text
+W <= 13Q.
+```
+
+Exact certificates violate this inequality in six branches:
+
+| Anchor | Orbit | Representative | `W` | `Q` | `13Q` |
+| --- | ---: | --- | ---: | ---: | ---: |
+| 5 | 19 | `011110` | 80 | 6 | 78 |
+| 5 | 20 | `011120` | 40 | 3 | 39 |
+| 5 | 21 | `011220` | 40 | 3 | 39 |
+| 5 | 22 | `012220` | 40 | 3 | 39 |
+| 5 | 23 | `022220` | 80 | 6 | 78 |
+| 6 | 13 | `002222` | 132 | 10 | 130 |
+
+The machine-readable weights are in
+`../data/weighted_branch_certificates.json`, and the full proof is in
+`WEIGHTED_BRANCH_CERTIFICATES.md`. The checker evaluates every admissible
+center, so the result does not depend on a solver classification or on
+testing only orbit representatives.
+
 ## Claim Boundary
 
 These lemmas exclude the maximum-weight-4 normalized branch, reduce the
-remaining normalized third-center split to 38 cases, and strengthen the
-finite search. They do not prove that a 16-cover exists or does not exist.
+remaining normalized third-center split to 38 cases, and rigorously exclude
+six of those cases. The current normalized frontier has 32 unresolved
+branches. These results do not prove that a 16-cover exists or does not exist.

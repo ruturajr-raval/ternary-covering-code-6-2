@@ -1,7 +1,6 @@
-Ternary Covering Code K_3(6,2) Research Workbench
+Ternary Covering Code K_3(6,2)
 Copyright (c) 2026 Ruturaj R Raval
 
 The reference 17-word code in data/reference_17_code.txt is transcribed from
 the public covering-codes-lean project for independent regression testing.
 See THIRD_PARTY_NOTICES.md for provenance and license details.
-
