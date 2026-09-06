@@ -1,5 +1,18 @@
 # Release v0.1.0
 
+## Release Identity
+
+| Field | Value |
+| --- | --- |
+| Title | Six Certified Branch Exclusions for the Ternary Covering Problem K_3(6,2) |
+| Tagged release | [`v0.1.0`](https://github.com/ruturajr-raval/ternary-covering-code-6-2/releases/tag/v0.1.0) |
+| Release date | 2026-09-06 |
+| Audited release commit | `3dea87b7e2cd116fcd5fc05c63c21a71259b0923` |
+| Version DOI | [`10.5281/zenodo.22510342`](https://doi.org/10.5281/zenodo.22510342) |
+| Concept DOI | [`10.5281/zenodo.22510341`](https://doi.org/10.5281/zenodo.22510341) |
+| Archive status | Published 63-file Zenodo snapshot matching the release tag |
+| License | MIT for project-original material |
+
 ## Background
 
 The ternary covering number `K_3(6,2)` asks for the minimum number of
@@ -86,6 +99,12 @@ On the current `main` branch, the source bundle includes the assigned DOI in
 and its recorded SHA-256 exactly, first check out tag `v0.1.0`, then run
 `make paper-bundle`.
 
+`release-manifest.sha256` authenticates the maintained `main` publication
+surface. It is not represented as the immutable `v0.1.0` tag manifest. The
+immutable release is bound by the protected tag and release commit, the
+recorded GitHub asset hashes, and the 63-file Zenodo archive-to-tag comparison
+recorded in `release.json`.
+
 ## Release And Archive
 
 - Public repository:
@@ -112,6 +131,22 @@ The Zenodo repository snapshot is
 `22044a649126f2836b2ced2135f6c4930e1842cbfc4ef3189ed09f84894eee8e`.
 Its 63 files match the immutable release tag tree exactly.
 
+## Provenance Boundary
+
+Project-original source, certificate data, and documentation are MIT
+licensed. The attributed 17-word regression fixture remains under its
+upstream BSD 3-Clause terms, as recorded in `THIRD_PARTY_NOTICES.md`.
+CaDiCaL, Kissat, and OR-Tools are optional external tools and are not bundled
+as project-original artifacts.
+
+## Review Status
+
+The release passed claim-scope, normalization, implementation,
+reproducibility, mutation, manuscript, and release-metadata review. Python and
+C++20 independently verify the six exact certificate claims, and all eight
+pages of the hosted PDF were reviewed. No external mathematical or peer
+review is claimed.
+
 ## Significance
 
 Each certificate proves that its residual fractional set-cover relaxation
@@ -124,7 +159,7 @@ The certificates also provide compact regression instances for symmetry
 reduction, residual set cover, exact dual verification, and finite
 branch-and-bound software.
 
-## Remaining Work
+## Remaining Work And Next Acceptance Gate
 
 A final solution still requires either a verified 16-word construction or a
 complete checked exclusion of every size-at-most-16 cover. The immediate
@@ -132,7 +167,21 @@ route is deeper stabilizer-orbit splitting of the 32 unresolved branches,
 combined with additional residual dual certificates and independent
 construction search.
 
+The next acceptance gate is either an independently verified 15- or 16-word
+construction, or a material exact reduction of the remaining 32 normalized
+branches with deterministic case generation and independent certificate
+replay.
+
+## Public Summary
+
+Release `v0.1.0` excludes six named branches in the complete 38-branch
+normalized third-center partition for the size-at-most-16 ternary covering
+problem `K_3(6,2)`. Independent Python and C++20 exact verifiers check every
+certificate. The certified normalized frontier is reduced to 32 unresolved
+branches, while `15 <= K_3(6,2) <= 17` remains unchanged.
+
 ## Citation
 
 Citation metadata is in `CITATION.cff`. Cite the archived `v0.1.0` result
 using version DOI `10.5281/zenodo.22510342`.
+Historical release scope is summarized in `RELEASE_NOTES.md`.

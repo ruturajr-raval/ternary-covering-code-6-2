@@ -2,6 +2,90 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22510341.svg)](https://doi.org/10.5281/zenodo.22510341)
 
+## Project Overview
+
+### Project Metadata
+
+| Field | Value |
+| --- | --- |
+| Author | Ruturaj R Raval |
+| Affiliation | Independent Researcher |
+| ORCID | [0000-0003-4930-8981](https://orcid.org/0000-0003-4930-8981) |
+| Field | Coding theory, set-cover duality, and exact combinatorial search |
+| Problem | Determine the ternary covering number `K_3(6,2)` |
+| Current result | Exact certificates exclude six of 38 normalized size-at-most-16 branches |
+| Result type | Significant certified branch reduction with unchanged global bounds |
+| Release | `v0.1.0` |
+| Version DOI | `10.5281/zenodo.22510342` |
+| Concept DOI | `10.5281/zenodo.22510341` |
+| License | MIT for project-original material |
+
+### Problem And Context
+
+The problem asks for the fewest radius-2 Hamming balls covering all 729
+ternary words of length 6. The audited interval is
+`15 <= K_3(6,2) <= 17`. The upper bound dates to 1991 and the lower bound to
+2004, leaving the existence of a 16-word cover unresolved for more than two
+decades. A verified 16-word cover would improve the upper bound, while a
+complete exclusion would settle the value at 17.
+
+### Work And Verified Outcome
+
+The project verifies a public 17-word cover, retains a seven-hole 16-word
+near-cover, and develops exact construction and exclusion tools. Sphere and
+antipodal arguments reduce the normalized size-at-most-16 search to 38
+third-center branches. Exact integer residual set-cover dual certificates
+exclude five weight-5 branches and one weight-6 branch, leaving 32 unresolved.
+
+### Claim Boundary
+
+The six named branch exclusions and the complete 38-branch normalization are
+rigorous. The project does not claim a 15-word or 16-word cover, nonexistence
+of all size-at-most-16 covers, a new table bound, or a theorem based only on
+CP-SAT or SAT solver status. The remaining 32 branches are explicitly open.
+
+### Verification And Reproduction
+
+Independent Python and C++20 exact-integer implementations reconstruct every
+certified branch over all 729 ambient words and compare canonical certificate
+tables entry for entry. Mutation tests, production-generator comparisons,
+deterministic manifests, and current CI provide additional checks. Detailed
+commands and evidence paths appear below and under `docs/`. The certificate
+replay requires Python 3 and a C++20 compiler, uses no GPU, and is designed
+for a commodity workstation; the optional construction and solver campaigns
+have explicit time and worker limits and are not part of the theorem.
+
+### Significance, Limitations, And Future Work
+
+The certificates replace exploratory solver statuses with compact exact
+proofs and reduce a complete normalized frontier from 38 cases to 32. The
+global interval remains unchanged. Next work applies deeper stabilizer-orbit
+splits, derives further dual certificates, and continues independent
+construction and exact repair searches.
+
+### Release, Citation, And Author
+
+The public repository is
+[`ruturajr-raval/ternary-covering-code-6-2`](https://github.com/ruturajr-raval/ternary-covering-code-6-2).
+The immutable tagged release is
+[`v0.1.0`](https://github.com/ruturajr-raval/ternary-covering-code-6-2/releases/tag/v0.1.0).
+It is archived at version DOI `10.5281/zenodo.22510342`; the stable
+all-versions DOI is `10.5281/zenodo.22510341`. The Zenodo snapshot contains
+63 files that were checked against the release tag tree. GitHub and Zenodo
+are the current dissemination baseline; no preprint-server deposit or
+external mathematical review is claimed.
+
+The next result gate is either an independently verified 15- or 16-word
+construction, or a material exact reduction of the remaining 32 normalized
+branches with deterministic case generation and independent certificate
+replay. Project-original material is MIT-licensed. The attributed 17-word
+regression fixture remains under its upstream BSD 3-Clause terms, and
+third-party tools retain their own licenses. Citation metadata is in
+`CITATION.cff`. The author is Ruturaj R Raval, Independent Researcher, ORCID
+`0000-0003-4930-8981`.
+
+## Origin And History
+
 This project studies the smallest number of radius-2 Hamming balls needed to
 cover the 729 ternary words of length 6.
 
@@ -77,6 +161,26 @@ Campaign settings and fingerprints remain in
 
 This is a rigorous certified branch reduction, not a new bound on
 `K_3(6,2)`.
+
+## Evidence And Repository Map
+
+| Path | Purpose and trust boundary |
+| --- | --- |
+| [`data/reference_17_code.txt`](data/reference_17_code.txt) | Attributed public 17-word regression witness, checked exhaustively here but not claimed as project-original |
+| [`data/weighted_branch_certificates.json`](data/weighted_branch_certificates.json) | Machine-readable integer weights for the six certified exclusions |
+| [`tools/verify_branch_certificates.py`](tools/verify_branch_certificates.py) | Python reconstruction and exact-capacity checker |
+| [`src/verify_branch_certificates.cpp`](src/verify_branch_certificates.cpp) | Independently encoded C++20 checker and canonical certificate table |
+| [`docs/WEIGHTED_BRANCH_CERTIFICATES.md`](docs/WEIGHTED_BRANCH_CERTIFICATES.md) | Certificate theorem, exact values, branch definitions, and replay procedure |
+| [`docs/STRUCTURAL_LEMMAS.md`](docs/STRUCTURAL_LEMMAS.md) | Sphere, antipodal, projection, and normalization lemmas |
+| [`docs/COMPUTATIONAL_STATUS.md`](docs/COMPUTATIONAL_STATUS.md) | Exact finite frontier, exploratory solver statuses, fingerprints, and claim limits |
+| [`docs/PRIOR_ART.md`](docs/PRIOR_ART.md) | Dated table history, novelty search, and reuse boundary |
+| [`docs/CLAIMS.md`](docs/CLAIMS.md) | Human-readable claims, nonclaims, significance, and review boundary |
+| [`docs/RESEARCH_PLAN.md`](docs/RESEARCH_PLAN.md) | Ranked next routes, acceptance gates, and kill criteria |
+| [`research/claim.yaml`](research/claim.yaml) | Machine-readable supported claims and nonclaims |
+| [`research/release-gate.json`](research/release-gate.json) | Publication-gate decisions for the scoped theorem |
+| [`paper/main.tex`](paper/main.tex) | Technical report source |
+| [`PUBLICATION.md`](PUBLICATION.md) | Release result, asset, archive, and limitation record |
+| [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) | Upstream witness provenance and third-party licensing |
 
 ## Build And Test
 
@@ -206,6 +310,66 @@ It does not claim:
 - novelty for the known 17-word construction;
 - exclusion of any of the remaining 32 normalized branches;
 - a certified exclusion based only on a solver status.
+
+## Future Acceptance Gates
+
+1. **Construction gate.** A 16-word candidate must contain 16 distinct words
+   and cover all 729 ambient words at radius 2 under the existing verifier
+   and a separately implemented exhaustive checker. Such a witness would
+   improve the upper bound to 16. A verified 15-word witness would determine
+   the exact value at 15.
+2. **Further exclusion gate.** Any new branch exclusion must use the complete
+   stabilizer-orbit definition, an exact certificate or checked proof object,
+   independent replay, mutation tests, and a refreshed prior-art audit.
+   Solver status, timeout volume, or search duration alone does not pass this
+   gate.
+3. **Global exclusion gate.** Every one of the remaining 32 normalized
+   branches must be closed by accepted evidence. Together with the verified
+   17-word witness, that would prove `K_3(6,2) = 17`.
+
+## Dissemination Status
+
+Release `v0.1.0`, its technical report, deterministic source asset, and exact
+certificate data are public through GitHub. Zenodo supplies the immutable
+version archive and DOI. No arXiv or HAL deposit is currently part of the
+publication record, and no external peer review is claimed. Any public
+summary must state that six branches are excluded, 32 remain unresolved, and
+the global interval is unchanged.
+
+## License And Provenance
+
+Project-original source, certificate data, and documentation are released
+under the MIT License. The reference 17-word code is transcribed from
+`florath/covering-codes-lean`, is used only as an attributed regression
+fixture, and remains subject to the upstream BSD 3-Clause license recorded in
+[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md). No upstream
+implementation code is included.
+
+CaDiCaL, Kissat, and OR-Tools are optional external tools installed only in
+ignored local environments. They are not release artifacts and remain under
+their respective upstream licenses. The six mathematical exclusions depend
+on the exact integer certificates and their two independent checkers, not on
+CP-SAT or SAT exit status.
+
+## Primary References
+
+- G. Keri, [Tables for covering codes](https://old.sztaki.hu/~keri/codes/3_tables.pdf),
+  accessed 2026-09-06.
+- H. Hamalainen and S. Rankinen, [Upper bounds for football pool problems and
+  mixed covering codes](https://doi.org/10.1016/0097-3165(91)90024-B),
+  *Journal of Combinatorial Theory, Series A* 56 (1991), 84-95.
+- P. R. J. Ostergard and H. O. Hamalainen, [A new table of binary/ternary
+  mixed covering codes](https://doi.org/10.1023/A:1008228721072),
+  *Designs, Codes and Cryptography* 11 (1997), 151-178.
+- R. Bertolo, P. R. J. Ostergard, and W. D. Weakley, [An updated table of
+  binary/ternary mixed covering codes](https://doi.org/10.1002/jcd.20008),
+  *Journal of Combinatorial Designs* 12 (2004), 157-176.
+- D. Gijswijt and S. Polak, [Semidefinite lower bounds for covering
+  codes](https://arxiv.org/abs/2504.01932), arXiv:2504.01932v2, 2026.
+- A. Florath,
+  [`covering-codes-lean`](https://github.com/florath/covering-codes-lean),
+  including the explicit `K_3(6,2) <= 17` witness and its documented failed
+  search directions.
 
 ## Citation And Archive
 

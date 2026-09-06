@@ -1,3 +1,4 @@
+schema_version: 1
 project: ternary-covering-code-6-2
 author: Ruturaj R Raval
 affiliation: Independent Researcher
@@ -12,6 +13,16 @@ problem:
 target:
   construction: find_and_verify_16_word_code
   exclusion: certify_no_cover_of_size_at_most_16
+current_supported_claim:
+  statement: >-
+    Exact residual set-cover dual certificates exclude six named branches in
+    the complete 38-branch normalized third-center partition for the
+    size-at-most-16 ternary covering problem K_3(6,2). The certified
+    normalized frontier has 32 unresolved branches, and the global interval
+    remains unchanged.
+  exact_value_determined: false
+  global_bound_improved: false
+  fixed_branch_exclusions_complete: true
 current_claims:
   - standalone_exact_verifier_implemented
   - known_17_word_code_replayed_as_regression_fixture

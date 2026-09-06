@@ -56,9 +56,9 @@
       "sha256": "22044a649126f2836b2ced2135f6c4930e1842cbfc4ef3189ed09f84894eee8e"
     },
     "ci": {
-      "private_main": 34022553335,
+      "workbench_main": 34022553335,
       "public_main": 34022706058,
-      "private_tag": 34022845395,
+      "workbench_tag": 34022845395,
       "public_tag": 34022847941
     },
     "claim_scope": "six exact branch exclusions with unchanged global interval"
@@ -68,7 +68,7 @@
     "cpp20_independent_verifier": "src/verify_branch_certificates.cpp",
     "machine_readable_certificates": "data/weighted_branch_certificates.json",
     "production_branch_generator": "src/generate_cnf.cpp",
-    "release_manifest": "release-manifest.sha256",
+    "current_main_publication_manifest": "release-manifest.sha256",
     "ambient_words": 729,
     "normalized_branches": 38,
     "certified_branches": 6,

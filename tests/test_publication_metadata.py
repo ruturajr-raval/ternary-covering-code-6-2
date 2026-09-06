@@ -184,9 +184,9 @@ class PublicationMetadataTests(unittest.TestCase):
         self.assertEqual(
             report["ci"],
             {
-                "private_main": 34022553335,
+                "workbench_main": 34022553335,
                 "public_main": 34022706058,
-                "private_tag": 34022845395,
+                "workbench_tag": 34022845395,
                 "public_tag": 34022847941,
             },
         )
