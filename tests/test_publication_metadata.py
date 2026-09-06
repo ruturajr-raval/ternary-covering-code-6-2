@@ -222,7 +222,7 @@ class PublicationMetadataTests(unittest.TestCase):
         self.assertNotIn("F.~Rath", manuscript)
         self.assertIn("Andreas Florath", notices)
 
-    def test_publication_files_have_no_local_or_generated_traces(self):
+    def test_publication_files_have_no_local_or_visibility_traces(self):
         excluded_parts = {
             ".git",
             ".tools",
@@ -239,8 +239,7 @@ class PublicationMetadataTests(unittest.TestCase):
             "research" + "-workbench",
             "private " + "repository",
             "private " + "repo",
-            "generated " + "by a language model",
-            "language-model " + "generated",
+            "private" + "_",
         )
         for path in ROOT.rglob("*"):
             relative = path.relative_to(ROOT)
