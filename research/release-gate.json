@@ -22,12 +22,12 @@
     "multi_reviewer_audit_completed": true,
     "clean_commit_ci_passes": true,
     "hosted_pdf_reviewed": true,
-    "public_release_created": false,
-    "zenodo_version_doi_assigned": false,
+    "public_release_created": true,
+    "zenodo_version_doi_assigned": true,
     "external_review_completed": false
   },
-  "artifact_decision": "release_candidate_ci_passed",
+  "artifact_decision": "released",
   "technical_report_decision": "ready",
-  "theorem_announcement_decision": "ready_after_public_release_and_archival",
-  "reason": "The scoped theorem, independent exact verifiers, canonical table comparison, production-generator regression checks, technical report, multi-review audit, clean hosted CI, deterministic source archive, and hosted PDF review pass. The public release and archival DOI remain to be completed. The exact global value remains open, and no external mathematical review is claimed."
+  "theorem_announcement_decision": "ready_for_scoped_result_announcement",
+  "reason": "The scoped theorem, independent exact verifiers, canonical table comparison, production-generator regression checks, technical report, multi-review audit, clean hosted CI, protected public release, deterministic source archive, hosted PDF review, and Zenodo archival pass. The exact global value remains open, and no external mathematical review is claimed."
 }

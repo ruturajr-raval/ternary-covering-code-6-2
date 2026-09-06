@@ -22,7 +22,7 @@ from tools.verify_checksum_manifest import (
     verify_tracked_coverage,
 )
 import tools.verify_checksum_manifest as verify_checksum_manifest
-from tools.verify_release_assets import verify_asset
+from tools.verify_release_assets import verify_asset, verify_zenodo_archive
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -176,6 +176,24 @@ class ReleaseAssetTests(unittest.TestCase):
             self.assertEqual(verify_asset(asset, metadata), ())
             asset.write_bytes(b"changed\n")
             self.assertEqual(len(verify_asset(asset, metadata)), 2)
+
+    def test_zenodo_archive_verifier_checks_md5(self):
+        with tempfile.TemporaryDirectory(
+            dir=ROOT,
+            prefix=".release-asset-test-",
+        ) as temporary_directory:
+            asset = Path(temporary_directory) / "archive.zip"
+            asset.write_bytes(b"archive\n")
+            payload = asset.read_bytes()
+            metadata = {
+                "file": f"owner/{asset.name}",
+                "size": len(payload),
+                "md5": hashlib.md5(payload).hexdigest(),
+                "sha256": hashlib.sha256(payload).hexdigest(),
+            }
+            self.assertEqual(verify_zenodo_archive(asset, metadata), ())
+            metadata["md5"] = "0" * 32
+            self.assertEqual(len(verify_zenodo_archive(asset, metadata)), 1)
 
 
 if __name__ == "__main__":

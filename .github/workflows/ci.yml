@@ -12,6 +12,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
       - name: Build
         run: make
       - name: Test
@@ -22,6 +24,32 @@ jobs:
         run: git diff --exit-code -- release-manifest.sha256
       - name: Verify release manifest
         run: make verify-release-manifest
+      - name: Build current source bundle
+        if: github.ref == 'refs/heads/main'
+        run: make paper-bundle
+      - name: Download published release artifacts
+        if: github.ref == 'refs/heads/main'
+        run: |
+          mkdir -p build/published-release
+          curl -fL --retry 4 --retry-all-errors \
+            https://github.com/ruturajr-raval/ternary-covering-code-6-2/releases/download/v0.1.0/ternary-covering-code-6-2-paper.pdf \
+            -o build/published-release/ternary-covering-code-6-2-paper.pdf
+          curl -fL --retry 4 --retry-all-errors \
+            https://github.com/ruturajr-raval/ternary-covering-code-6-2/releases/download/v0.1.0/ternary-covering-code-6-2-source.tar.gz \
+            -o build/published-release/ternary-covering-code-6-2-source.tar.gz
+          curl -fL --retry 4 --retry-all-errors \
+            https://zenodo.org/api/records/22510342/files/ruturajr-raval/ternary-covering-code-6-2-v0.1.0.zip/content \
+            -o build/published-release/ternary-covering-code-6-2-v0.1.0.zip
+      - name: Verify published release artifacts
+        if: github.ref == 'refs/heads/main'
+        run: |
+          python3 tools/verify_release_assets.py \
+            --release-pdf \
+              build/published-release/ternary-covering-code-6-2-paper.pdf \
+            --release-source \
+              build/published-release/ternary-covering-code-6-2-source.tar.gz \
+            --zenodo-archive \
+              build/published-release/ternary-covering-code-6-2-v0.1.0.zip
 
   cp-sat-model:
     runs-on: ubuntu-24.04

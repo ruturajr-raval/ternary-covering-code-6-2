@@ -1,6 +1,6 @@
 {
   "version": "0.1.0",
-  "release_status": "release_candidate_ci_passed",
+  "release_status": "released",
   "release_date": "2026-09-06",
   "artifact_status": "verified_six_branch_exclusion",
   "supported_claim": "Exact residual set-cover dual certificates exclude six named branches in the complete 38-branch normalized third-center partition for the size-at-most-16 ternary covering problem K_3(6,2). The certified frontier has 32 unresolved branches.",
@@ -8,23 +8,59 @@
   "new_result_status": "six_exact_normalized_branch_exclusions",
   "artifact_reproducibility_ready": true,
   "artifact_release_ready": true,
-  "technical_report_release_status": "release_candidate_ci_passed",
+  "technical_report_release_status": "released",
   "external_review_status": "No external mathematical review is claimed.",
   "technical_report": {
     "title": "Six Certified Branch Exclusions for the Ternary Covering Problem K_3(6,2)",
     "manuscript": "paper/main.tex",
     "submission_metadata": "paper/ARXIV_METADATA.md",
     "source_archive": "dist/paper/ternary-covering-code-6-2-source.tar.gz",
-    "planned_release_tag": "v0.1.0",
-    "planned_public_repository": "https://github.com/ruturajr-raval/ternary-covering-code-6-2",
-    "candidate_release_assets": {
+    "current_source_bundle": {
+      "name": "ternary-covering-code-6-2-source.tar.gz",
+      "size": 9142,
+      "sha256": "66e084ee2032f1f565f26838867691f34d1228543f4e6d4c42bb2b6abd977f7d"
+    },
+    "release_tag": "v0.1.0",
+    "release_tag_object": "820713e18e09aa74611f0dc23b19bb18e7c54c95",
+    "release_commit": "3dea87b7e2cd116fcd5fc05c63c21a71259b0923",
+    "github_release_id": 383520038,
+    "github_release": "https://github.com/ruturajr-raval/ternary-covering-code-6-2/releases/tag/v0.1.0",
+    "release_tag_protection": {
+      "ruleset_id": 22378683,
+      "enforcement": "active",
+      "pattern": "refs/tags/v*",
+      "rules": [
+        "update",
+        "deletion"
+      ],
+      "bypass_actors": []
+    },
+    "release_version_doi": "10.5281/zenodo.22510342",
+    "release_concept_doi": "10.5281/zenodo.22510341",
+    "release_assets": {
+      "pdf": {
+        "name": "ternary-covering-code-6-2-paper.pdf",
+        "size": 321190,
+        "sha256": "1096074fd0023ff908b7c7cc1cf4091701945278c40bf5a010865b7d1e3473a0"
+      },
       "source": {
         "name": "ternary-covering-code-6-2-source.tar.gz",
         "size": 9131,
         "sha256": "0ad4c0a0fd44c9714f3123673bad13cbc60cebde4569b1073edf304458f42974"
       }
     },
-    "pdf_release_policy": "Use the PDF artifact from passed hosted paper CI, inspect every page, and record its final checksum after publication.",
+    "release_zenodo_archive": {
+      "file": "ruturajr-raval/ternary-covering-code-6-2-v0.1.0.zip",
+      "size": 135788,
+      "md5": "a4678b6226e4c074f6d5840d71e8d953",
+      "sha256": "22044a649126f2836b2ced2135f6c4930e1842cbfc4ef3189ed09f84894eee8e"
+    },
+    "ci": {
+      "private_main": 34022553335,
+      "public_main": 34022706058,
+      "private_tag": 34022845395,
+      "public_tag": 34022847941
+    },
     "claim_scope": "six exact branch exclusions with unchanged global interval"
   },
   "verification": {
@@ -42,15 +78,11 @@
     "production_generator_branch_sets_match": true,
     "mutation_tests_pass": true,
     "pdf_pages_reviewed": 8,
-    "private_release_candidate_ci": {
-      "run_id": 34022368512,
-      "commit": "141f26d35b97cbbbeaa737348c0473cf1d0e7683",
-      "status": "success",
-      "hosted_pdf_size": 321190,
-      "hosted_pdf_sha256": "2695f390d99f5164bf2fcb4cd73e24d79c133500d9012bbd205382989040a40d",
-      "source_size": 9131,
-      "source_sha256": "0ad4c0a0fd44c9714f3123673bad13cbc60cebde4569b1073edf304458f42974"
-    }
+    "hosted_pdf_size": 321190,
+    "hosted_pdf_sha256": "1096074fd0023ff908b7c7cc1cf4091701945278c40bf5a010865b7d1e3473a0",
+    "release_assets_download_match": true,
+    "zenodo_archive_matches_release_tag": true,
+    "zenodo_archive_file_count": 63
   },
   "limitations": [
     "No 15-word or 16-word covering code is constructed.",

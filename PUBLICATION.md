@@ -81,6 +81,37 @@ make paper-build
 make paper-bundle
 ```
 
+On the current `main` branch, the source bundle includes the assigned DOI in
+`paper/ARXIV_METADATA.md`. To reproduce the immutable published source asset
+and its recorded SHA-256 exactly, first check out tag `v0.1.0`, then run
+`make paper-bundle`.
+
+## Release And Archive
+
+- Public repository:
+  `https://github.com/ruturajr-raval/ternary-covering-code-6-2`
+- GitHub release:
+  `https://github.com/ruturajr-raval/ternary-covering-code-6-2/releases/tag/v0.1.0`
+- Version DOI: `10.5281/zenodo.22510342`
+- Stable concept DOI: `10.5281/zenodo.22510341`
+- Release commit:
+  `3dea87b7e2cd116fcd5fc05c63c21a71259b0923`
+
+Release assets:
+
+```text
+ternary-covering-code-6-2-paper.pdf
+SHA-256 1096074fd0023ff908b7c7cc1cf4091701945278c40bf5a010865b7d1e3473a0
+
+ternary-covering-code-6-2-source.tar.gz
+SHA-256 0ad4c0a0fd44c9714f3123673bad13cbc60cebde4569b1073edf304458f42974
+```
+
+The Zenodo repository snapshot is
+`ruturajr-raval/ternary-covering-code-6-2-v0.1.0.zip`, with SHA-256
+`22044a649126f2836b2ced2135f6c4930e1842cbfc4ef3189ed09f84894eee8e`.
+Its 63 files match the immutable release tag tree exactly.
+
 ## Significance
 
 Each certificate proves that its residual fractional set-cover relaxation
@@ -103,5 +134,5 @@ construction search.
 
 ## Citation
 
-Citation metadata is in `CITATION.cff`. Cite the versioned GitHub release and
-its archival DOI after the archive is assigned.
+Citation metadata is in `CITATION.cff`. Cite the archived `v0.1.0` result
+using version DOI `10.5281/zenodo.22510342`.
