@@ -163,22 +163,31 @@ def anchor_center(weight):
     return value
 
 
+def third_candidate_max_weight(weight):
+    return min(weight, 4)
+
+
 def validate_orbit_manifest(manifest, weight):
+    candidate_max_weight = third_candidate_max_weight(weight)
     if (
-        manifest.get("schema") != 1
+        manifest.get("schema") != 2
         or manifest.get("weight") != weight
+        or manifest.get("target_centers") != 16
+        or manifest.get("exact_cardinality") is not True
+        or manifest.get("candidate_max_weight")
+        != candidate_max_weight
         or not isinstance(manifest.get("orbits"), list)
     ):
         raise ValueError("invalid third-orbit manifest header")
     anchor = anchor_center(weight)
-    allowed = {
+    eligible = {
         center
         for center in range(SPACE_SIZE)
         if center not in {0, anchor}
-        and center_weight(center) <= weight
+        and center_weight(center) <= candidate_max_weight
     }
     expected_groups = {}
-    for center in allowed:
+    for center in eligible:
         expected_groups.setdefault(
             third_orbit_key(center, weight), []
         ).append(center)
@@ -222,8 +231,8 @@ def validate_orbit_manifest(manifest, weight):
             raise ValueError("third-orbit manifest hash mismatch")
         covered.update(member_set)
     if (
-        covered != allowed
-        or manifest.get("allowed_centers") != len(allowed)
+        covered != eligible
+        or manifest.get("eligible_centers") != len(eligible)
         or manifest.get("orbit_count") != len(manifest["orbits"])
     ):
         raise ValueError("third-orbit manifest is not exhaustive")
@@ -877,7 +886,10 @@ def main():
             root
             / "research-results"
             / "cp-sat"
-            / f"w{args.weight}_third_orbits_{suffix}"
+            / (
+                f"w{args.weight}_third_orbits_{suffix}_"
+                f"{args.orbit_manifest_sha256[:12]}"
+            )
         )
     elif not output.is_absolute():
         output = root / output

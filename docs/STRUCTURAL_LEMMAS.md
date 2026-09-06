@@ -193,9 +193,28 @@ Every cover must satisfy, for each `z` and each radius `r`,
 sum_d a_r(d) N_d(z) >= |S_r(z)|.
 ```
 
-The CP-SAT model adds all six inequalities at every reference word. The CNF
-option `--radial-sphere-cuts` adds the following compact consequences of the
-radius-1 and radius-2 rows:
+If `z` is selected in a 16-center cover and every other center were at
+distance at least 5, the radius-3 row would provide capacity at most
+
+```text
+15 * 10 = 150 < 160.
+```
+
+Thus every selected center has another center at distance at most 4. After
+translating a center to zero and fixing a maximum-weight anchor of weight 5 or
+6, a third center can always be chosen with weight at most 4. Its stabilizer
+orbits give 24 cases for anchor weight 5 and 14 cases for anchor weight 6.
+Together with the antipodal exclusion of anchor weight 4, this is a complete
+38-case normalized third-center split.
+
+Bounding every positive coefficient by the largest coefficient in its row
+and rounding the resulting quotient up gives support lower bounds. Every
+reference word has at least 4, 9, 6, and 3 selected centers in the
+positive-capacity shells for radii 3, 4, 5, and 6.
+
+The CP-SAT model adds all six inequalities and these rounded support bounds at
+every reference word. The CNF option `--radial-sphere-cuts` adds the following
+compact consequences of the radius-1 and radius-2 rows:
 
 ```text
 N_0+N_1 >= 1  or  N_1+N_2 >= 3  or  N_3 >= 2,
@@ -209,6 +228,6 @@ is still required.
 
 ## Claim Boundary
 
-These lemmas exclude the maximum-weight-4 normalized branch and strengthen
-the remaining finite search. They do not prove that a 16-cover exists or does
-not exist.
+These lemmas exclude the maximum-weight-4 normalized branch, reduce the
+remaining normalized third-center split to 38 cases, and strengthen the
+finite search. They do not prove that a 16-cover exists or does not exist.

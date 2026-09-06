@@ -61,11 +61,12 @@ assert not subset_outcome["solver_excluded"]
 
 def manifest_for_weight(weight):
     anchor = module.anchor_center(weight)
+    candidate_max_weight = module.third_candidate_max_weight(weight)
     groups = {}
     for center in range(module.SPACE_SIZE):
         if (
             center in {0, anchor}
-            or module.center_weight(center) > weight
+            or module.center_weight(center) > candidate_max_weight
         ):
             continue
         groups.setdefault(
@@ -87,9 +88,14 @@ def manifest_for_weight(weight):
             }
         )
     return {
-        "schema": 1,
+        "schema": 2,
         "weight": weight,
-        "allowed_centers": sum(len(orbit["members"]) for orbit in orbits),
+        "target_centers": 16,
+        "exact_cardinality": True,
+        "candidate_max_weight": candidate_max_weight,
+        "eligible_centers": sum(
+            len(orbit["members"]) for orbit in orbits
+        ),
         "orbit_count": len(orbits),
         "orbits": orbits,
     }
@@ -97,7 +103,7 @@ def manifest_for_weight(weight):
 
 manifest = manifest_for_weight(5)
 module.validate_orbit_manifest(manifest, 5)
-assert manifest["orbit_count"] == 34
+assert manifest["orbit_count"] == 24
 invalid_manifest = json.loads(json.dumps(manifest))
 invalid_manifest["orbits"][0]["members"].pop()
 try:

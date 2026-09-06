@@ -12,7 +12,8 @@ The published interval is
 The upper bound dates to work of Hamalainen and Rankinen in 1991. The lower
 bound of 15 was recorded by Bertolo, Ostergard, and Weakley in 2004. The
 16-center case has therefore remained the exact gap for more than two
-decades.
+decades. Sources and the current-frontier review are recorded in
+[`docs/PRIOR_ART.md`](docs/PRIOR_ART.md).
 
 ## Why This Case Matters
 
@@ -45,6 +46,12 @@ One exact search branch is now closed mathematically. After translating a
 hypothetical 16-cover so that one center is `000000`, its maximum center
 weight cannot be at most 4. The 64 words antipodal to `000000` would receive
 capacity at most `15 * 4 = 60`. Thus only maximum-weight cases 5 and 6 remain.
+
+The radius-3 sphere gives a complementary reduction. If all other centers had
+weight at least 5, they would cover at most `15 * 10 = 150` of its 160 words.
+Every normalized 16-cover therefore contains another center of weight at most
+4. The theorem-driven third-center split has 24 weight-5-anchor orbits and 14
+weight-6-anchor orbits, for 38 live cases rather than 60.
 
 This is a rigorous structural reduction, not a new bound on `K_3(6,2)`.
 
@@ -155,8 +162,8 @@ terminate their active solver process groups before returning.
 
 This project currently claims the implemented and tested search machinery,
 the stated necessary conditions, the verified 17-word certificate, the
-7-hole near-cover, and the proof that the normalized maximum-weight-4 branch
-is impossible.
+7-hole near-cover, the proof that the normalized maximum-weight-4 branch is
+impossible, and the complete 38-case low-weight third-center reduction.
 
 It does not claim:
 

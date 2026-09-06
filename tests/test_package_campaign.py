@@ -103,6 +103,22 @@ with tempfile.TemporaryDirectory(
     }
     assert excluded == [".campaign.lock", "partial.tmp"]
 
+    cp_collection = temporary_root / "cp-collection"
+    cp_collection.mkdir()
+    cp_summary = {
+        "orbit_manifest": {"orbit_count": 1},
+        "selected_orbits": [0],
+    }
+    (cp_collection / "orbit-00").mkdir()
+    module.validate_campaign_layout(cp_collection, cp_summary)
+    (cp_collection / "orbit-24").mkdir()
+    try:
+        module.validate_campaign_layout(cp_collection, cp_summary)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("unselected CP-SAT branch was accepted")
+
     (collection / "linked.log").symlink_to(collection / "solve.log")
     try:
         module.collect_files(collection, root.resolve())

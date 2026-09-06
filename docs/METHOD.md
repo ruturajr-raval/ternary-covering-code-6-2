@@ -54,11 +54,14 @@ center's orbit is determined by:
 - its counts of symbols 0, 1, and 2 inside the anchor support;
 - its number of nonzero symbols outside the support.
 
-There are 29, 34, and 26 eligible third-center orbits for anchor weights 4, 5,
-and 6. Weight 4 is retained as a regression case even though it is now
-excluded mathematically. Choosing the earliest occupied orbit and mapping one
-selected center to its canonical representative gives a complete,
-nonoverlapping split.
+For a hypothetical 16-cover, the radius-3 capacity lemma proves that every
+selected center has another center within distance 4. For maximum-weight
+anchors 5 and 6, the canonical third center can therefore be chosen from only
+the weight-at-most-4 stabilizer orbits. There are 24 and 14 such orbits. The
+29 weight-4-anchor orbits are retained as regression cases even though that
+whole anchor branch is excluded mathematically. Choosing the earliest
+occupied eligible orbit and mapping one selected center to its canonical
+representative gives a complete, nonoverlapping split.
 
 At deeper levels the generator enumerates the full subgroup fixing all
 selected representatives. The earliest occupied orbit under that subgroup
@@ -77,9 +80,11 @@ is exhaustive while fewer than 16 centers are fixed. Orbit branching is
 therefore rejected for at-most formulations, and paths longer than 14 are
 rejected.
 
-The generator checks that every allowed center outside the fixed set belongs
-to exactly one listed stabilizer orbit. The root partitions contain 471, 663,
-and 727 centers for maximum weights 4, 5, and 6.
+The generator checks that every eligible branching center belongs to exactly
+one listed stabilizer orbit. The theorem-driven root partitions contain 471,
+472, and 472 candidates for maximum weights 4, 5, and 6. After the third
+center is fixed, deeper partitions again include every allowed center up to
+the anchor weight.
 
 ## Strengthening Inequalities
 
@@ -98,7 +103,8 @@ The CNF generator supports five complementary cut families:
 The CP-SAT formulation uses the same exact cover, cardinality, symmetry,
 coordinate, two-coordinate, and optional five-coordinate conditions. It also
 adds the complete radius-1 through radius-6 capacity inequalities at every
-reference word.
+reference word and their rounded support consequences: at least 4, 9, 6, and
+3 selected centers in the positive-capacity shells for radii 3 through 6.
 
 ## Campaign Coordinators
 
@@ -115,19 +121,24 @@ The SAT coordinator distinguishes:
 - `UNKNOWN` for an unresolved node;
 - `ERROR` or `CANCELLED` for an invalid or interrupted run.
 
-`tools/cp_sat_orbit_campaign.py` runs the 29, 34, or 26 third-center orbit
+`tools/cp_sat_orbit_campaign.py` runs the 29, 24, or 14 third-center orbit
 cases in parallel. It derives the orbit manifest from the model code, then
 independently checks every orbit member, representative, disjointness, and
-exhaustive coverage before launching any solver. Its campaign fingerprint
-includes the Git commit and worktree state, exact scripts and verifier,
-Python executable, installed package set, solver version, model
-configuration, orbit manifest, and branch seed. A separate run fingerprint
-records the selected orbit subset, time limit, and parallel job count. Every
-completed solver result additionally records a deterministic
-serialized-model hash, exact command, solver exit code, and solver-log hash.
-Before reusing a cached record, the coordinator rebuilds that branch without
-solving and requires the serialized-model hash to match. A cached witness is
-reverified and must match its recorded centers and branch.
+exhaustive coverage of the theorem-eligible low-weight candidate set before
+launching any solver. Its campaign fingerprint includes the Git commit and
+worktree state, exact scripts and verifier, Python executable, installed
+package set, solver version, model configuration, orbit manifest, and branch
+seed. A separate run fingerprint records the selected orbit subset, time
+limit, and parallel job count. Every completed solver result additionally
+records a deterministic serialized-model hash, exact command, solver exit
+code, and solver-log hash. Before reusing a cached record, the coordinator
+rebuilds that branch without solving and requires the serialized-model hash
+to match. A cached witness is reverified and must match its recorded centers
+and branch.
+
+Default campaign directory names include the orbit-manifest hash. The
+packager also rejects branch directories not named in the campaign summary,
+preventing obsolete orbit schemas from entering an archive.
 
 The CP-SAT coordinator reports an `INFEASIBLE` branch only as
 `solver-only-no-certificate`. It does not convert that status into a

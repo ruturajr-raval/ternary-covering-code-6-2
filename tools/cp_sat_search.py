@@ -69,6 +69,10 @@ def anchor_word(anchor_weight):
     return (1,) * anchor_weight + (0,) * (LENGTH - anchor_weight)
 
 
+def third_candidate_max_weight(anchor_weight):
+    return min(anchor_weight, 4)
+
+
 def build_distance_shells():
     result = []
     for word in WORDS:
@@ -95,15 +99,25 @@ SPHERE_CAPACITIES = tuple(
     )
     for radius in range(LENGTH + 1)
 )
+RADIAL_SUPPORT_MINIMUMS = tuple(
+    (
+        SPHERE_SIZES[radius]
+        + max(SPHERE_CAPACITIES[radius])
+        - 1
+    )
+    // max(SPHERE_CAPACITIES[radius])
+    for radius in range(LENGTH + 1)
+)
 
 
 def third_orbits(anchor_weight):
     anchor = anchor_word(anchor_weight)
+    candidate_max_weight = third_candidate_max_weight(anchor_weight)
     groups = defaultdict(list)
     for center, word in enumerate(WORDS):
         if word == (0,) * LENGTH or word == anchor:
             continue
-        if weight(word) > anchor_weight:
+        if weight(word) > candidate_max_weight:
             continue
         support = word[:anchor_weight]
         key = (
@@ -125,11 +139,12 @@ def third_orbits(anchor_weight):
 def third_orbit_manifest(anchor_weight):
     orbits = third_orbits(anchor_weight)
     anchor = encode(anchor_word(anchor_weight))
-    allowed = {
+    candidate_max_weight = third_candidate_max_weight(anchor_weight)
+    eligible = {
         center
         for center, word in enumerate(WORDS)
         if center not in {ZERO, anchor}
-        and weight(word) <= anchor_weight
+        and weight(word) <= candidate_max_weight
     }
     covered = set()
     entries = []
@@ -150,12 +165,15 @@ def third_orbit_manifest(anchor_weight):
                 ).hexdigest(),
             }
         )
-    if covered != allowed:
+    if covered != eligible:
         raise RuntimeError("third-center orbits do not cover the branch")
     return {
-        "schema": 1,
+        "schema": 2,
         "weight": anchor_weight,
-        "allowed_centers": len(allowed),
+        "target_centers": TARGET_CENTERS,
+        "exact_cardinality": True,
+        "candidate_max_weight": candidate_max_weight,
+        "eligible_centers": len(eligible),
         "orbit_count": len(entries),
         "orbits": entries,
     }
@@ -276,6 +294,16 @@ def build_model(args):
                 )
                 >= SPHERE_SIZES[radius]
             )
+            if radius >= 3:
+                model.Add(
+                    sum(
+                        variable
+                        for shell_distance in range(LENGTH + 1)
+                        if SPHERE_CAPACITIES[radius][shell_distance]
+                        for variable in shells[shell_distance]
+                    )
+                    >= RADIAL_SUPPORT_MINIMUMS[radius]
+                )
 
     if args.two_projection_cuts:
         add_projection_two_constraints(model, variables)

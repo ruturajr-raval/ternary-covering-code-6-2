@@ -63,6 +63,10 @@ assert sum(
     for word in words
 ) == 583
 
+radius_three_capacities = (0, 40, 24, 25, 16, 10, 0)
+assert 15 * max(radius_three_capacities[5:]) == 150
+assert 15 * max(radius_three_capacities[5:]) < 160
+
 assert module.can_have_remaining_center((0,) * 13)
 assert not module.can_have_remaining_center((0,) * 14)
 

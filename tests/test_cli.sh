@@ -65,11 +65,11 @@ test "$(
 test "$(
   build/generate_cnf --anchor-weight 5 --list-third-orbits | wc -l |
     tr -d ' '
-)" -eq 34
+)" -eq 24
 test "$(
   build/generate_cnf --anchor-weight 6 --list-third-orbits | wc -l |
     tr -d ' '
-)" -eq 26
+)" -eq 14
 
 test "$(
   build/generate_cnf --anchor-weight 4 --list-next-orbits |
@@ -78,11 +78,32 @@ test "$(
 test "$(
   build/generate_cnf --anchor-weight 5 --list-next-orbits |
     awk -F'orbit_size=' '{total += $2} END {print total}'
-)" -eq 663
+)" -eq 472
 test "$(
   build/generate_cnf --anchor-weight 6 --list-next-orbits |
     awk -F'orbit_size=' '{total += $2} END {print total}'
-)" -eq 727
+)" -eq 472
+
+build/generate_cnf \
+  --centers 16 \
+  --anchor-weight 5 \
+  --third-orbit 0 \
+  >"$cnf_output"
+grep -q \
+  '^c reduced branch core: 3 fixed centers, 64 forbidden centers,' \
+  "$cnf_output"
+grep -q '^-729 0$' "$cnf_output"
+! grep -q '^-727 0$' "$cnf_output"
+
+build/generate_cnf \
+  --centers 16 \
+  --anchor-weight 6 \
+  --third-orbit 0 \
+  >"$cnf_output"
+grep -q \
+  '^c reduced branch core: 3 fixed centers, 0 forbidden centers,' \
+  "$cnf_output"
+! grep -q '^-729 0$' "$cnf_output"
 
 build/generate_cnf \
   --anchor-weight 5 \
@@ -118,6 +139,13 @@ build/generate_cnf \
   >/dev/null 2>&1
 at_most_orbit_status=$?
 build/generate_cnf \
+  --centers 17 \
+  --no-structural \
+  --anchor-weight 5 \
+  --list-third-orbits \
+  >/dev/null 2>&1
+wrong_cardinality_orbit_status=$?
+build/generate_cnf \
   --centers 16 \
   --anchor-weight 4 \
   --orbit-path 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 \
@@ -125,6 +153,7 @@ build/generate_cnf \
 overlong_path_status=$?
 set -e
 test "$at_most_orbit_status" -eq 2
+test "$wrong_cardinality_orbit_status" -eq 2
 test "$overlong_path_status" -eq 2
 
 python3 tests/test_recursive_cube_search.py

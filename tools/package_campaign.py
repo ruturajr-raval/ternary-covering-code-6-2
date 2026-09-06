@@ -78,6 +78,43 @@ def collect_files(source, root):
     return records, excluded
 
 
+def validate_campaign_layout(source, summary):
+    has_manifest = "orbit_manifest" in summary
+    has_selection = "selected_orbits" in summary
+    if not has_manifest and not has_selection:
+        return
+    if not has_manifest or not has_selection:
+        raise ValueError("incomplete CP-SAT campaign layout metadata")
+
+    manifest = summary["orbit_manifest"]
+    selected = summary["selected_orbits"]
+    if (
+        not isinstance(manifest, dict)
+        or not isinstance(manifest.get("orbit_count"), int)
+        or not isinstance(selected, list)
+        or any(
+            not isinstance(orbit, int)
+            or orbit < 0
+            or orbit >= manifest["orbit_count"]
+            for orbit in selected
+        )
+        or len(set(selected)) != len(selected)
+    ):
+        raise ValueError("invalid CP-SAT campaign layout metadata")
+
+    expected = {f"orbit-{orbit:02d}" for orbit in selected}
+    unexpected = sorted(
+        path.name
+        for path in source.iterdir()
+        if path.is_dir() and path.name not in expected
+    )
+    if unexpected:
+        raise ValueError(
+            "campaign contains unselected branch directories: "
+            + ",".join(unexpected)
+        )
+
+
 def write_json(path, value):
     temporary = path.with_name(
         f"{path.name}.{os.getpid()}.{uuid.uuid4().hex}.tmp"
@@ -198,6 +235,7 @@ def main():
             commit,
             args.allow_noncertified,
         )
+        validate_campaign_layout(source, summary)
         records, excluded = collect_files(source, root.resolve())
     except (ValueError, json.JSONDecodeError, OSError) as error:
         raise SystemExit(str(error)) from error

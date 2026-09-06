@@ -199,6 +199,10 @@ Options parse_options(int argc, char** argv) {
         throw std::invalid_argument(
             "orbit branching requires exact cardinality");
     }
+    if (uses_orbit_branching && options.centers != 16) {
+        throw std::invalid_argument(
+            "orbit branching is specialized to exactly 16 centers");
+    }
     if (options.anchor_weight >= 0 && options.centers < 2) {
         throw std::invalid_argument(
             "the normalized anchor requires at least two centers");
@@ -244,6 +248,10 @@ int anchor_word(int weight) {
         digits[static_cast<std::size_t>(i)] = 1;
     }
     return ternary_cover::encode(digits);
+}
+
+int third_candidate_max_weight(int anchor_weight) {
+    return std::min(anchor_weight, 4);
 }
 
 using OrbitKey = std::tuple<int, int, int, int>;
@@ -363,7 +371,12 @@ struct CenterOrbit {
 std::vector<CenterOrbit> center_orbits(
     int anchor_weight,
     const std::vector<int>& fixed_words,
-    const std::vector<int>& forbidden_words = {}) {
+    const std::vector<int>& forbidden_words = {},
+    int candidate_max_weight = -1) {
+    const int maximum_candidate_weight =
+        candidate_max_weight < 0
+        ? anchor_weight
+        : std::min(anchor_weight, candidate_max_weight);
     const auto group = stabilizer(anchor_weight, fixed_words);
     std::array<bool, ternary_cover::kSpaceSize> excluded{};
     for (int forbidden : forbidden_words) {
@@ -378,7 +391,8 @@ std::vector<CenterOrbit> center_orbits(
     for (int word = 0; word < ternary_cover::kSpaceSize; ++word) {
         if (visited[static_cast<std::size_t>(word)] ||
             excluded[static_cast<std::size_t>(word)] ||
-            ternary_cover::hamming_weight(word) > anchor_weight) {
+            ternary_cover::hamming_weight(word) >
+                maximum_candidate_weight) {
             continue;
         }
         std::vector<int> members;
@@ -406,11 +420,12 @@ std::vector<CenterOrbit> center_orbits(
     std::size_t observed = 0;
     for (int word = 0; word < ternary_cover::kSpaceSize; ++word) {
         if (!excluded[static_cast<std::size_t>(word)] &&
-            ternary_cover::hamming_weight(word) <= anchor_weight) {
+            ternary_cover::hamming_weight(word) <=
+                maximum_candidate_weight) {
             ++expected;
             if (!visited[static_cast<std::size_t>(word)]) {
                 throw std::logic_error(
-                    "stabilizer orbits do not cover every allowed center");
+                    "stabilizer orbits do not cover every eligible center");
             }
         }
     }
@@ -426,10 +441,13 @@ std::vector<CenterOrbit> center_orbits(
 
 std::vector<ThirdOrbit> third_orbits(int anchor_weight) {
     const int anchor = anchor_word(anchor_weight);
+    const int candidate_max_weight =
+        third_candidate_max_weight(anchor_weight);
     std::map<OrbitKey, std::vector<int>> grouped;
     for (int word = 0; word < ternary_cover::kSpaceSize; ++word) {
         if (word == 0 || word == anchor ||
-            ternary_cover::hamming_weight(word) > anchor_weight) {
+            ternary_cover::hamming_weight(word) >
+                candidate_max_weight) {
             continue;
         }
         grouped[third_orbit_key(word, anchor_weight)].push_back(word);
@@ -1027,10 +1045,16 @@ int main(int argc, char** argv) {
                 0, anchor_word(options.anchor_weight)};
             std::vector<int> forbidden_words;
             for (int orbit_index : options.orbit_path) {
+                const int candidate_max_weight =
+                    fixed_words.size() == 2
+                    ? third_candidate_max_weight(
+                          options.anchor_weight)
+                    : options.anchor_weight;
                 auto level = center_orbits(
                     options.anchor_weight,
                     fixed_words,
-                    forbidden_words);
+                    forbidden_words,
+                    candidate_max_weight);
                 if (orbit_index < 0 ||
                     orbit_index >= static_cast<int>(level.size())) {
                     throw std::invalid_argument(
@@ -1054,10 +1078,16 @@ int main(int argc, char** argv) {
                 }
             }
             if (options.list_next_orbits) {
+                const int candidate_max_weight =
+                    fixed_words.size() == 2
+                    ? third_candidate_max_weight(
+                          options.anchor_weight)
+                    : options.anchor_weight;
                 const auto next = center_orbits(
                     options.anchor_weight,
                     fixed_words,
-                    forbidden_words);
+                    forbidden_words,
+                    candidate_max_weight);
                 for (std::size_t index = 0; index < next.size(); ++index) {
                     std::cout
                         << index << ' '
@@ -1277,6 +1307,13 @@ int main(int argc, char** argv) {
                       << ternary_cover::format_word(
                              anchor_word(options.anchor_weight))
                       << '\n';
+            if (options.anchor_weight >= 5 &&
+                (options.third_orbit >= 0 ||
+                 !options.orbit_path.empty())) {
+                std::cout
+                    << "c third-center branching restricted to weight at "
+                    << "most 4 by radius-3 capacity\n";
+            }
         }
         if (options.structural_constraints) {
             std::cout
