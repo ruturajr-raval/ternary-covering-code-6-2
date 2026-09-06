@@ -5,6 +5,9 @@
 | Field | Value |
 | --- | --- |
 | Title | Six Certified Branch Exclusions for the Ternary Covering Problem K_3(6,2) |
+| Author | Ruturaj R Raval |
+| Affiliation | Independent Researcher |
+| ORCID | [0000-0003-4930-8981](https://orcid.org/0000-0003-4930-8981) |
 | Tagged release | [`v0.1.0`](https://github.com/ruturajr-raval/ternary-covering-code-6-2/releases/tag/v0.1.0) |
 | Release date | 2026-09-06 |
 | Audited release commit | `3dea87b7e2cd116fcd5fc05c63c21a71259b0923` |
