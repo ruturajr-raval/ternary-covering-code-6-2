@@ -1,7 +1,7 @@
 {
   "title": "Six Certified Branch Exclusions for the Ternary Covering Problem K_3(6,2)",
   "upload_type": "software",
-  "description": "Technical report, exact certificate data, and independent verification software for six normalized branch exclusions in the unresolved ternary covering-code problem K_3(6,2). Elementary sphere arguments reduce the normalized size-at-most-16 search to 38 third-center branches. Exact residual set-cover dual certificates exclude five weight-5 branches and one weight-6 branch. Independent Python and C++20 implementations verify every certificate over all 729 ambient words and every admissible center. The normalized frontier is reduced to 32 unresolved branches. The global interval 15 <= K_3(6,2) <= 17 remains unchanged.",
+  "description": "Technical report, exact certificate data, and independent verification software for six normalized branch exclusions in the unresolved ternary covering-code problem K_3(6,2). Elementary sphere arguments reduce the normalized size-at-most-16 search to 38 third-center branches. Exact residual set-cover dual certificates exclude five weight-5 branches and one weight-6 branch. Independent Python and C++20 implementations verify every certificate over all 729 ambient words and every admissible center. The normalized frontier is reduced to 32 unresolved branches. The global interval 15 <= K_3(6,2) <= 17 remains unchanged. Version 0.1.1 is an archival and documentation patch adding an explicit compiled report PDF, a deterministic source bundle, and a checksum manifest. The theorem, proof, certificates, data, and computations are unchanged.",
   "creators": [
     {
       "name": "Raval, Ruturaj R",
@@ -19,5 +19,5 @@
     "computer-assisted proof",
     "reproducible research"
   ],
-  "version": "0.1.0"
+  "version": "0.1.1"
 }

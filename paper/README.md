@@ -14,11 +14,25 @@ Build the deterministic source archive:
 make paper-bundle
 ```
 
-The archive is written to:
+The paper outputs are:
 
 ```text
+build/paper/main.pdf
+dist/paper/ternary-covering-code-6-2-paper.pdf
 dist/paper/ternary-covering-code-6-2-source.tar.gz
 ```
+
+Build the paper-inclusive archival release set with:
+
+```bash
+make release-assets
+make release-checksums
+make verify-release-assets
+```
+
+Release `v0.1.1` adds the explicitly named PDF, deterministic source archive,
+and `SHA256SUMS`. The mathematical result and all proof artifacts are
+unchanged from `v0.1.0`.
 
 Replay the central theorem independently with:
 

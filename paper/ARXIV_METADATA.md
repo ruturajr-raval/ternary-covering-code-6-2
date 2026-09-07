@@ -79,5 +79,7 @@ uses no external bibliography, figures, or generated tables.
 The accompanying source repository contains the machine-readable
 certificates, independent Python and C++20 verifiers, mutation tests,
 production-generator branch-manifest checks, structural search code, and
-complete replay commands. Cite GitHub release `v0.1.0` together with the
-Zenodo version DOI `10.5281/zenodo.22510342`.
+complete replay commands. Cite GitHub release `v0.1.1` together with the
+Zenodo version DOI `10.5281/zenodo.22647771`. This archival and documentation
+patch adds the compiled PDF and deterministic source bundle without changing
+the theorem, proof, certificates, data, or computations.

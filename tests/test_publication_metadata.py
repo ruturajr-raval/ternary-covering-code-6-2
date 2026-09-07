@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import json
+import hashlib
+import re
 import unittest
 from pathlib import Path
 
@@ -10,10 +12,10 @@ TITLE = (
     "Six Certified Branch Exclusions for the Ternary Covering Problem "
     "K_3(6,2)"
 )
-VERSION = "0.1.0"
+VERSION = "0.1.1"
 AUTHOR = "Ruturaj R Raval"
 ORCID = "0000-0003-4930-8981"
-VERSION_DOI = "10.5281/zenodo.22510342"
+VERSION_DOI = "10.5281/zenodo.22647771"
 CONCEPT_DOI = "10.5281/zenodo.22510341"
 REPRESENTATIVES = (
     "011110",
@@ -115,10 +117,17 @@ class PublicationMetadataTests(unittest.TestCase):
         self.assertTrue(
             gate["gates"]["production_generator_manifests_match"]
         )
-        self.assertTrue(gate["gates"]["public_release_created"])
+        self.assertFalse(gate["gates"]["public_release_created"])
         self.assertTrue(gate["gates"]["zenodo_version_doi_assigned"])
-        self.assertEqual(gate["artifact_decision"], "released")
-        self.assertEqual(release["release_status"], "released")
+        self.assertTrue(
+            gate["gates"]["archival_patch_claim_scope_audited"]
+        )
+        self.assertEqual(gate["artifact_decision"], "prepared")
+        self.assertEqual(release["release_status"], "prepared")
+        self.assertFalse(release["mathematical_claim_changed"])
+        self.assertFalse(
+            release["proof_certificates_data_or_computations_changed"]
+        )
         self.assertEqual(
             release["verification"]["certified_branches"],
             6,
@@ -136,67 +145,49 @@ class PublicationMetadataTests(unittest.TestCase):
             (ROOT / "release.json").read_text(encoding="ascii")
         )
         report = release["technical_report"]
-        self.assertEqual(report["release_tag"], "v0.1.0")
-        self.assertEqual(
-            report["release_tag_object"],
-            "820713e18e09aa74611f0dc23b19bb18e7c54c95",
-        )
-        self.assertEqual(
-            report["release_commit"],
-            "3dea87b7e2cd116fcd5fc05c63c21a71259b0923",
-        )
+        self.assertEqual(report["release_tag"], "v0.1.1")
+        self.assertIsNone(report["release_commit"])
         self.assertEqual(
             report["github_release"],
             "https://github.com/ruturajr-raval/"
-            "ternary-covering-code-6-2/releases/tag/v0.1.0",
+            "ternary-covering-code-6-2/releases/tag/v0.1.1",
         )
         self.assertEqual(report["release_version_doi"], VERSION_DOI)
         self.assertEqual(report["release_concept_doi"], CONCEPT_DOI)
-        self.assertEqual(report["github_release_id"], 383520038)
-        self.assertEqual(report["current_source_bundle"]["size"], 9142)
+        expected_names = {
+            "pdf": "ternary-covering-code-6-2-paper.pdf",
+            "source": "ternary-covering-code-6-2-source.tar.gz",
+            "checksums": "SHA256SUMS",
+        }
+        for role, name in expected_names.items():
+            metadata = report["release_assets"][role]
+            self.assertEqual(metadata["name"], name)
+            self.assertIsInstance(metadata["size"], int)
+            self.assertGreater(metadata["size"], 0)
+            self.assertRegex(metadata["sha256"], r"^[0-9a-f]{64}$")
+            path = ROOT / "dist" / "release" / name
+            if path.is_file():
+                self.assertEqual(metadata["size"], path.stat().st_size)
+                self.assertEqual(
+                    metadata["sha256"],
+                    hashlib.sha256(path.read_bytes()).hexdigest(),
+                )
         self.assertEqual(
-            report["current_source_bundle"]["sha256"],
-            "66e084ee2032f1f565f26838867691f34d1228543f4e6d4c42bb2b6abd977f7d",
-        )
-        self.assertEqual(report["release_assets"]["pdf"]["size"], 321190)
-        self.assertEqual(
-            report["release_assets"]["pdf"]["sha256"],
-            "1096074fd0023ff908b7c7cc1cf4091701945278c40bf5a010865b7d1e3473a0",
-        )
-        self.assertEqual(report["release_assets"]["source"]["size"], 9131)
-        self.assertEqual(
-            report["release_assets"]["source"]["sha256"],
-            "0ad4c0a0fd44c9714f3123673bad13cbc60cebde4569b1073edf304458f42974",
-        )
-        self.assertEqual(
-            report["release_zenodo_archive"]["file"],
-            "ruturajr-raval/ternary-covering-code-6-2-v0.1.0.zip",
-        )
-        self.assertEqual(report["release_zenodo_archive"]["size"], 135788)
-        self.assertEqual(
-            report["release_zenodo_archive"]["md5"],
-            "a4678b6226e4c074f6d5840d71e8d953",
-        )
-        self.assertEqual(
-            report["release_zenodo_archive"]["sha256"],
-            "22044a649126f2836b2ced2135f6c4930e1842cbfc4ef3189ed09f84894eee8e",
-        )
-        self.assertEqual(
-            report["ci"],
+            report["release_zenodo_archive"],
             {
-                "workbench_main": 34022553335,
-                "public_main": 34022706058,
-                "workbench_tag": 34022845395,
-                "public_tag": 34022847941,
+                "file": None,
+                "size": None,
+                "md5": None,
+                "sha256": None,
             },
         )
-        self.assertTrue(release["verification"]["release_assets_download_match"])
-        self.assertTrue(
-            release["verification"]["zenodo_archive_matches_release_tag"]
-        )
-        self.assertEqual(
-            release["verification"]["zenodo_archive_file_count"],
-            63,
+        previous = report["previous_release"]
+        self.assertEqual(previous["version"], "0.1.0")
+        self.assertEqual(previous["version_doi"], "10.5281/zenodo.22510342")
+        self.assertEqual(previous["zenodo_archive_file_count"], 63)
+        self.assertFalse(release["verification"]["public_release_created"])
+        self.assertFalse(
+            release["verification"]["zenodo_record_updated_with_paper"]
         )
 
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
@@ -210,6 +201,13 @@ class PublicationMetadataTests(unittest.TestCase):
         for text in (readme, publication):
             self.assertIn(CONCEPT_DOI, text)
         self.assertGreaterEqual(cff.count(VERSION_DOI), 2)
+        self.assertIsNotNone(
+            re.search(
+                r"archival (and|documentation)|archival patch",
+                readme,
+                re.IGNORECASE,
+            )
+        )
 
     def test_upstream_attribution_is_correct(self):
         manuscript = (ROOT / "paper" / "main.tex").read_text(

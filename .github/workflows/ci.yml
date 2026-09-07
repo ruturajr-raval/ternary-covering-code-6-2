@@ -24,32 +24,6 @@ jobs:
         run: git diff --exit-code -- release-manifest.sha256
       - name: Verify release manifest
         run: make verify-release-manifest
-      - name: Build current source bundle
-        if: github.ref == 'refs/heads/main'
-        run: make paper-bundle
-      - name: Download published release artifacts
-        if: github.ref == 'refs/heads/main'
-        run: |
-          mkdir -p build/published-release
-          curl -fL --retry 4 --retry-all-errors \
-            https://github.com/ruturajr-raval/ternary-covering-code-6-2/releases/download/v0.1.0/ternary-covering-code-6-2-paper.pdf \
-            -o build/published-release/ternary-covering-code-6-2-paper.pdf
-          curl -fL --retry 4 --retry-all-errors \
-            https://github.com/ruturajr-raval/ternary-covering-code-6-2/releases/download/v0.1.0/ternary-covering-code-6-2-source.tar.gz \
-            -o build/published-release/ternary-covering-code-6-2-source.tar.gz
-          curl -fL --retry 4 --retry-all-errors \
-            https://zenodo.org/api/records/22510342/files/ruturajr-raval/ternary-covering-code-6-2-v0.1.0.zip/content \
-            -o build/published-release/ternary-covering-code-6-2-v0.1.0.zip
-      - name: Verify published release artifacts
-        if: github.ref == 'refs/heads/main'
-        run: |
-          python3 tools/verify_release_assets.py \
-            --release-pdf \
-              build/published-release/ternary-covering-code-6-2-paper.pdf \
-            --release-source \
-              build/published-release/ternary-covering-code-6-2-source.tar.gz \
-            --zenodo-archive \
-              build/published-release/ternary-covering-code-6-2-v0.1.0.zip
 
   cp-sat-model:
     runs-on: ubuntu-24.04
@@ -99,16 +73,22 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
-      - name: Install TeX
+      - name: Install Tectonic 0.17.0
         run: |
-          sudo apt-get update
-          sudo apt-get install -y latexmk texlive-latex-extra lmodern
-      - name: Build technical report
-        run: make paper-build
-      - name: Build deterministic source bundle
-        run: make paper-bundle
-      - name: Verify source release asset
-        run: make verify-release-assets
+          mkdir -p build/tectonic
+          curl -fL --retry 4 --retry-all-errors \
+            https://github.com/tectonic-typesetting/tectonic/releases/download/tectonic%400.17.0/tectonic-0.17.0-x86_64-unknown-linux-musl.tar.gz \
+            -o build/tectonic/tectonic.tar.gz
+          echo \
+            "8533d07f9ccbd7a65824b9e0459041bca34af1eb33daba48f59215593753a3b7  build/tectonic/tectonic.tar.gz" \
+            | shasum -a 256 -c -
+          tar -xzf build/tectonic/tectonic.tar.gz -C build/tectonic
+      - name: Build paper-inclusive release assets
+        run: TECTONIC=build/tectonic/tectonic make release-assets
+      - name: Verify release assets and checksums
+        run: |
+          make release-checksums
+          make verify-release-assets
       - name: Inspect source bundle
         run: tar -tzf dist/paper/ternary-covering-code-6-2-source.tar.gz
       - name: Compile from release source bundle
@@ -118,17 +98,30 @@ jobs:
             dist/paper/ternary-covering-code-6-2-source.tar.gz \
             -C build/source-replay
           cd build/source-replay
-          latexmk -pdf -interaction=nonstopmode -halt-on-error \
-            -file-line-error \
-            -output-directory=../source-replay-output \
-            paper/main.tex
+          SOURCE_DATE_EPOCH=1788739200 \
+            ../tectonic/tectonic -X compile paper/main.tex \
+              --outdir ../source-replay-output --keep-logs
+          cmp ../source-replay-output/main.pdf \
+            ../../dist/release/ternary-covering-code-6-2-paper.pdf
+      - name: Assert deterministic PDF and source bundle
+        run: |
+          cp dist/release/ternary-covering-code-6-2-paper.pdf \
+            build/release-pdf-first.pdf
+          cp dist/release/ternary-covering-code-6-2-source.tar.gz \
+            build/release-source-first.tar.gz
+          TECTONIC=build/tectonic/tectonic make release-assets
+          cmp build/release-pdf-first.pdf \
+            dist/release/ternary-covering-code-6-2-paper.pdf
+          cmp build/release-source-first.tar.gz \
+            dist/release/ternary-covering-code-6-2-source.tar.gz
       - name: Upload report assets
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: ternary-covering-code-6-2-report
           path: |
-            build/paper/main.pdf
-            dist/paper/ternary-covering-code-6-2-source.tar.gz
+            dist/release/ternary-covering-code-6-2-paper.pdf
+            dist/release/ternary-covering-code-6-2-source.tar.gz
+            dist/release/SHA256SUMS
           if-no-files-found: error
           retention-days: 30
       - name: Assert no tracked files changed

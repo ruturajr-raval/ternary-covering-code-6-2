@@ -1,5 +1,32 @@
 # Release Notes
 
+## [v0.1.1](https://github.com/ruturajr-raval/ternary-covering-code-6-2/releases/tag/v0.1.1) - 2026-09-07
+
+### Archival And Documentation Patch
+
+This patch adds a paper-inclusive archival release set:
+
+- `ternary-covering-code-6-2-paper.pdf`;
+- `ternary-covering-code-6-2-source.tar.gz`;
+- `SHA256SUMS`.
+
+The compiled PDF and deterministic source archive are intended for both the
+GitHub release and Zenodo record. The version DOI is
+`10.5281/zenodo.22647771`, and the stable concept DOI remains
+`10.5281/zenodo.22510341`.
+
+The theorem, proof, certificates, data, computations, six excluded branches,
+32 unresolved branches, and global interval are unchanged from `v0.1.0`.
+This patch makes no new mathematical claim.
+
+Asset hashes:
+
+```text
+ternary-covering-code-6-2-paper.pdf  c0a8bc60bb0d83fb0ed3ff19764c78badf9fe69cac119447c9b25acacddbf321
+ternary-covering-code-6-2-source.tar.gz  0e1d5433493905c7ab0bdd83667b74c5cf6e93e46e09607e64408aa3a220fdbb
+SHA256SUMS  7a89a7fde2b523e3a5bf65c12228d75cf710283feba6b99e86362021b56455c8
+```
+
 ## [v0.1.0](https://github.com/ruturajr-raval/ternary-covering-code-6-2/releases/tag/v0.1.0) - 2026-09-06
 
 ### Result

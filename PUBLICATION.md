@@ -1,4 +1,4 @@
-# Release v0.1.0
+# Release v0.1.1
 
 ## Release Identity
 
@@ -8,12 +8,12 @@
 | Author | Ruturaj R Raval |
 | Affiliation | Independent Researcher |
 | ORCID | [0000-0003-4930-8981](https://orcid.org/0000-0003-4930-8981) |
-| Tagged release | [`v0.1.0`](https://github.com/ruturajr-raval/ternary-covering-code-6-2/releases/tag/v0.1.0) |
-| Release date | 2026-09-06 |
-| Audited release commit | `3dea87b7e2cd116fcd5fc05c63c21a71259b0923` |
-| Version DOI | [`10.5281/zenodo.22510342`](https://doi.org/10.5281/zenodo.22510342) |
+| Tagged release | [`v0.1.1`](https://github.com/ruturajr-raval/ternary-covering-code-6-2/releases/tag/v0.1.1) |
+| Release date | 2026-09-07 |
+| Release commit | Pending - no commit or tag was created while preparing this patch |
+| Version DOI | [`10.5281/zenodo.22647771`](https://doi.org/10.5281/zenodo.22647771) |
 | Concept DOI | [`10.5281/zenodo.22510341`](https://doi.org/10.5281/zenodo.22510341) |
-| Archive status | Published 63-file Zenodo snapshot matching the release tag |
+| Archive status | Local paper-inclusive release set prepared; GitHub and Zenodo publication pending |
 | License | MIT for project-original material |
 
 ## Background
@@ -32,8 +32,14 @@ construction, would determine the exact value at 17.
 
 ## What This Release Adds
 
-This release gives a complete normalized third-center reduction and exact
-certificates for six branches.
+Version `v0.1.1` is an archival and documentation patch. It adds an
+explicitly named compiled report PDF, a deterministic report-source archive,
+and `SHA256SUMS` for the release assets. The theorem, proof, certificates,
+data, computations, branch counts, and global claim boundary are unchanged
+from `v0.1.0`.
+
+The mathematical result retained by this patch gives a complete normalized
+third-center reduction and exact certificates for six branches.
 
 After translating one selected center to `000000`, an antipodal-sphere
 argument excludes maximum weight at most 4. A radius-3 sphere argument then
@@ -93,46 +99,49 @@ make test-cp-sat
 Build the technical report and deterministic source archive:
 
 ```bash
-make paper-build
-make paper-bundle
+make release-assets
+make release-checksums
+make verify-release-assets
 ```
 
-On the current `main` branch, the source bundle includes the assigned DOI in
-`paper/ARXIV_METADATA.md`. To reproduce the immutable published source asset
-and its recorded SHA-256 exactly, first check out tag `v0.1.0`, then run
-`make paper-bundle`.
+The source bundle includes the `v0.1.1` DOI in
+`paper/ARXIV_METADATA.md`. Its tar and gzip headers are normalized, so
+repeated builds from the same source tree are byte-identical.
 
 `release-manifest.sha256` authenticates the maintained `main` publication
-surface. It is not represented as the immutable `v0.1.0` tag manifest. The
-immutable release is bound by the protected tag and release commit, the
-recorded GitHub asset hashes, and the 63-file Zenodo archive-to-tag comparison
-recorded in `release.json`.
+surface. The prepared release set is independently bound by `SHA256SUMS` and
+the asset records in `release.json`.
 
 ## Release And Archive
 
 - Public repository:
   `https://github.com/ruturajr-raval/ternary-covering-code-6-2`
-- GitHub release:
-  `https://github.com/ruturajr-raval/ternary-covering-code-6-2/releases/tag/v0.1.0`
-- Version DOI: `10.5281/zenodo.22510342`
+- Release identity:
+  `https://github.com/ruturajr-raval/ternary-covering-code-6-2/releases/tag/v0.1.1`
+- Version DOI: `10.5281/zenodo.22647771`
 - Stable concept DOI: `10.5281/zenodo.22510341`
-- Release commit:
-  `3dea87b7e2cd116fcd5fc05c63c21a71259b0923`
+- Release commit: pending
+- Publication status: local assets prepared; no commit, tag, push, GitHub
+  release, or Zenodo upload was performed during preparation
 
 Release assets:
 
 ```text
 ternary-covering-code-6-2-paper.pdf
-SHA-256 1096074fd0023ff908b7c7cc1cf4091701945278c40bf5a010865b7d1e3473a0
+SHA-256 c0a8bc60bb0d83fb0ed3ff19764c78badf9fe69cac119447c9b25acacddbf321
 
 ternary-covering-code-6-2-source.tar.gz
-SHA-256 0ad4c0a0fd44c9714f3123673bad13cbc60cebde4569b1073edf304458f42974
+SHA-256 0e1d5433493905c7ab0bdd83667b74c5cf6e93e46e09607e64408aa3a220fdbb
+
+SHA256SUMS
+SHA-256 7a89a7fde2b523e3a5bf65c12228d75cf710283feba6b99e86362021b56455c8
 ```
 
-The Zenodo repository snapshot is
-`ruturajr-raval/ternary-covering-code-6-2-v0.1.0.zip`, with SHA-256
-`22044a649126f2836b2ced2135f6c4930e1842cbfc4ef3189ed09f84894eee8e`.
-Its 63 files match the immutable release tag tree exactly.
+The prior `v0.1.0` archive remains available at version DOI
+`10.5281/zenodo.22510342`. Its 63-file snapshot matched release commit
+`3dea87b7e2cd116fcd5fc05c63c21a71259b0923`. The paper-inclusive successor
+draft `10.5281/zenodo.22647771` is reserved and has been inspected. No files
+have been uploaded and the draft has not been published.
 
 ## Provenance Boundary
 
@@ -144,11 +153,11 @@ as project-original artifacts.
 
 ## Review Status
 
-The release passed claim-scope, normalization, implementation,
-reproducibility, mutation, manuscript, and release-metadata review. Python and
-C++20 independently verify the six exact certificate claims, and all eight
-pages of the hosted PDF were reviewed. No external mathematical or peer
-review is claimed.
+The mathematical release passed claim-scope, normalization, implementation,
+reproducibility, mutation, and manuscript review. Python and C++20
+independently verify the six exact certificate claims. The `v0.1.1` local
+paper and release assets are verified separately below before publication.
+No external mathematical or peer review is claimed.
 
 ## Significance
 
@@ -177,14 +186,15 @@ replay.
 
 ## Public Summary
 
-Release `v0.1.0` excludes six named branches in the complete 38-branch
-normalized third-center partition for the size-at-most-16 ternary covering
-problem `K_3(6,2)`. Independent Python and C++20 exact verifiers check every
-certificate. The certified normalized frontier is reduced to 32 unresolved
-branches, while `15 <= K_3(6,2) <= 17` remains unchanged.
+Release `v0.1.1` is a paper-inclusive archival and documentation patch for
+the six certified branch exclusions. It adds an explicit compiled PDF,
+deterministic source archive, and checksums. Independent Python and C++20
+exact verifiers still check every certificate. The certified normalized
+frontier remains 32 unresolved branches, and
+`15 <= K_3(6,2) <= 17` remains unchanged.
 
 ## Citation
 
-Citation metadata is in `CITATION.cff`. Cite the archived `v0.1.0` result
-using version DOI `10.5281/zenodo.22510342`.
+Citation metadata is in `CITATION.cff`. Cite the paper-inclusive `v0.1.1`
+archival patch using version DOI `10.5281/zenodo.22647771`.
 Historical release scope is summarized in `RELEASE_NOTES.md`.

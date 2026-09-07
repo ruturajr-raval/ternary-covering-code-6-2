@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import hashlib
+import subprocess
 import tarfile
 import tempfile
 import unittest
@@ -11,6 +12,7 @@ from tools.build_paper_bundle import MEMBERS, build_bundle
 import tools.build_release_manifest as build_release_manifest
 from tools.build_release_manifest import (
     build_manifest,
+    build_worktree_manifest,
     git_index_available,
     index_blob,
     sha256_bytes,
@@ -21,8 +23,12 @@ from tools.verify_checksum_manifest import (
     verify_index_entries,
     verify_tracked_coverage,
 )
-import tools.verify_checksum_manifest as verify_checksum_manifest
-from tools.verify_release_assets import verify_asset, verify_zenodo_archive
+import tools.verify_checksum_manifest as checksum_manifest_module
+from tools.verify_release_assets import (
+    verify_asset,
+    verify_checksum_manifest as verify_release_checksum_manifest,
+    verify_zenodo_archive,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -69,11 +75,13 @@ class ChecksumManifestTests(unittest.TestCase):
         ):
             self.assertFalse(build_release_manifest.git_index_available())
         with patch.object(
-            verify_checksum_manifest.subprocess,
+            checksum_manifest_module.subprocess,
             "run",
             side_effect=FileNotFoundError,
         ):
-            self.assertFalse(verify_checksum_manifest.git_index_available())
+            self.assertFalse(
+                checksum_manifest_module.git_index_available()
+            )
 
     def test_index_blob_matches_tracked_file(self):
         if not git_index_available():
@@ -108,6 +116,23 @@ class ChecksumManifestTests(unittest.TestCase):
             )
             self.assertEqual(
                 verify_entries(parse_manifest(first_manifest)),
+                (),
+            )
+
+    def test_worktree_manifest_covers_tracked_files(self):
+        if not git_index_available():
+            self.skipTest("Git index is unavailable in a source archive.")
+        with tempfile.TemporaryDirectory(
+            dir=ROOT,
+            prefix=".checksum-manifest-test-",
+        ) as temporary_directory:
+            output = Path(temporary_directory) / "manifest.sha256"
+            entry_count = build_worktree_manifest(output)
+            entries = parse_manifest(output)
+            self.assertEqual(entry_count, len(entries))
+            self.assertEqual(verify_entries(entries), ())
+            self.assertEqual(
+                verify_tracked_coverage(entries, output),
                 (),
             )
 
@@ -153,7 +178,13 @@ class ChecksumManifestTests(unittest.TestCase):
         entries = parse_manifest(manifest)
         self.assertEqual(verify_entries(entries), ())
         if git_index_available():
-            self.assertEqual(verify_index_entries(entries), ())
+            dirty = subprocess.run(
+                ["git", "diff", "--quiet"],
+                cwd=ROOT,
+                check=False,
+            ).returncode != 0
+            if not dirty:
+                self.assertEqual(verify_index_entries(entries), ())
             self.assertEqual(
                 verify_tracked_coverage(entries, manifest),
                 (),
@@ -194,6 +225,51 @@ class ReleaseAssetTests(unittest.TestCase):
             self.assertEqual(verify_zenodo_archive(asset, metadata), ())
             metadata["md5"] = "0" * 32
             self.assertEqual(len(verify_zenodo_archive(asset, metadata)), 1)
+
+    def test_checksum_manifest_is_closed_and_verified(self):
+        with tempfile.TemporaryDirectory(
+            dir=ROOT,
+            prefix=".release-asset-test-",
+        ) as temporary_directory:
+            directory = Path(temporary_directory)
+            first = directory / "paper.pdf"
+            second = directory / "source.tar.gz"
+            first.write_bytes(b"paper\n")
+            second.write_bytes(b"source\n")
+            manifest = directory / "SHA256SUMS"
+            manifest.write_text(
+                "\n".join(
+                    (
+                        f"{hashlib.sha256(first.read_bytes()).hexdigest()}"
+                        "  paper.pdf",
+                        f"{hashlib.sha256(second.read_bytes()).hexdigest()}"
+                        "  source.tar.gz",
+                    )
+                )
+                + "\n",
+                encoding="ascii",
+            )
+            self.assertEqual(
+                verify_release_checksum_manifest(
+                    manifest,
+                    ("paper.pdf", "source.tar.gz"),
+                ),
+                (),
+            )
+            extra = directory / "extra.bin"
+            extra.write_bytes(b"extra\n")
+            manifest.write_text(
+                manifest.read_text(encoding="ascii")
+                + f"{hashlib.sha256(extra.read_bytes()).hexdigest()}"
+                "  extra.bin\n",
+                encoding="ascii",
+            )
+            self.assertTrue(
+                verify_release_checksum_manifest(
+                    manifest,
+                    ("paper.pdf", "source.tar.gz"),
+                )
+            )
 
 
 if __name__ == "__main__":

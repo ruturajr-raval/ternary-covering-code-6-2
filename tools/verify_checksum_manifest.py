@@ -157,17 +157,32 @@ def main() -> None:
         action="store_true",
         help="verify listed hashes without comparing against tracked files",
     )
+    parser.add_argument(
+        "--worktree",
+        action="store_true",
+        help="verify current tracked files without comparing Git index blobs",
+    )
     args = parser.parse_args()
+    if args.listed_only and args.worktree:
+        parser.error("--listed-only and --worktree are mutually exclusive")
     entries = parse_manifest(args.manifest)
     errors = list(verify_entries(entries))
     index_checked = False
+    worktree_coverage_checked = False
     if not args.listed_only and git_index_available():
-        errors.extend(verify_index_entries(entries))
+        if not args.worktree:
+            errors.extend(verify_index_entries(entries))
+            index_checked = True
         errors.extend(verify_tracked_coverage(entries, args.manifest))
-        index_checked = True
+        worktree_coverage_checked = args.worktree
     if errors:
         raise SystemExit("Manifest verification failed:\n" + "\n".join(errors))
-    mode = "files-and-git-index" if index_checked else "listed-files"
+    if index_checked:
+        mode = "files-and-git-index"
+    elif worktree_coverage_checked:
+        mode = "files-and-tracked-coverage"
+    else:
+        mode = "listed-files"
     print(f"manifest={args.manifest} status=verified mode={mode}")
 
 

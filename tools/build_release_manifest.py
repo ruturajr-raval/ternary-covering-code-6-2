@@ -140,14 +140,30 @@ def build_index_manifest(output: Path) -> int:
     return len(selected)
 
 
+def build_worktree_manifest(output: Path) -> int:
+    selected = staged_paths(output)
+    build_manifest(output, selected)
+    return len(selected)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
+    parser.add_argument(
+        "--worktree",
+        action="store_true",
+        help="hash current tracked files instead of Git index blobs",
+    )
     args = parser.parse_args()
     if not git_index_available():
         raise SystemExit("A Git index at the repository root is required.")
-    entry_count = build_index_manifest(args.output)
-    print(f"output={args.output} entries={entry_count} source=git-index")
+    if args.worktree:
+        entry_count = build_worktree_manifest(args.output)
+        source = "worktree"
+    else:
+        entry_count = build_index_manifest(args.output)
+        source = "git-index"
+    print(f"output={args.output} entries={entry_count} source={source}")
 
 
 if __name__ == "__main__":

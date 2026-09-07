@@ -3,8 +3,8 @@ project: ternary-covering-code-6-2
 author: Ruturaj R Raval
 affiliation: Independent Researcher
 orcid: 0000-0003-4930-8981
-updated: 2026-09-06
-status: released_scoped_result
+updated: 2026-09-07
+status: prepared_archival_documentation_patch
 problem:
   notation: K_3(6,2)
   published_interval:
@@ -56,3 +56,12 @@ evidence_policy:
       - proof_log_per_case
       - independent_proof_replay
       - artifact_hash_manifest
+release:
+  version: 0.1.1
+  tag: v0.1.1
+  version_doi: 10.5281/zenodo.22647771
+  concept_doi: 10.5281/zenodo.22510341
+  status: prepared
+  patch_scope: paper_inclusive_archival_documentation
+  mathematical_claim_changed: false
+  proof_or_certificate_changed: false

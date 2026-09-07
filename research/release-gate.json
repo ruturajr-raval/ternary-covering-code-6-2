@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "project": "ternary-covering-code-6-2",
-  "evaluated_at": "2026-09-06",
+  "evaluated_at": "2026-09-07",
   "candidate_claim": "Exact residual set-cover dual certificates exclude six named branches in the complete 38-branch normalized third-center partition for the size-at-most-16 ternary covering problem K_3(6,2). The certified frontier has 32 unresolved branches.",
   "gates": {
     "significant_original_result": true,
@@ -20,15 +20,23 @@
     "limitations_documented": true,
     "technical_report_ready": true,
     "independent_repository_audits_completed": true,
-    "clean_release_commit_ci_passes": true,
-    "hosted_pdf_reviewed": true,
-    "public_release_created": true,
+    "compiled_pdf_in_release_set": true,
+    "deterministic_source_bundle_ready": true,
+    "release_checksum_manifest_ready": true,
+    "paper_source_rebuild_matches_pdf": true,
+    "all_pdf_pages_reviewed": true,
+    "release_asset_hashes_verified": true,
+    "archival_patch_claim_scope_audited": true,
+    "clean_release_commit_ci_passes": false,
+    "hosted_pdf_reviewed": false,
+    "public_release_created": false,
     "zenodo_version_doi_assigned": true,
+    "zenodo_record_updated_with_paper": false,
     "external_review_completed": false
   },
-  "artifact_decision": "released",
+  "artifact_decision": "prepared",
   "technical_report_decision": "ready",
   "theorem_announcement_decision": "ready_for_scoped_result_announcement",
   "review_scope": "Independent repository audits covered claim wording, implementation consistency, reproducibility, and publication metadata. They are not represented as external mathematical peer review.",
-  "reason": "The scoped theorem, independent exact verifiers, canonical table comparison, production-generator regression checks, technical report, repository audits, clean release-commit CI, protected public release, deterministic source archive, hosted PDF review, and Zenodo archival pass. The exact global value remains open, and no external mathematical review is claimed."
+  "reason": "The scoped theorem and its exact verification remain accepted. Version 0.1.1 is a paper-inclusive archival and documentation patch. Local PDF, source-bundle, checksum, release-manifest, commit, tag, hosted CI, GitHub release, and Zenodo upload gates must pass before publication. The exact global value remains open, and no external mathematical review is claimed."
 }
