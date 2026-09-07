@@ -10,7 +10,7 @@
 | ORCID | [0000-0003-4930-8981](https://orcid.org/0000-0003-4930-8981) |
 | Tagged release | [`v0.1.1`](https://github.com/ruturajr-raval/ternary-covering-code-6-2/releases/tag/v0.1.1) |
 | Release date | 2026-09-07 |
-| Release commit | `6824254e627fe4f4125423e8d1b0976f1f712d3b` |
+| Audited release commit | `6824254e627fe4f4125423e8d1b0976f1f712d3b` |
 | Version DOI | [`10.5281/zenodo.22647771`](https://doi.org/10.5281/zenodo.22647771) |
 | Concept DOI | [`10.5281/zenodo.22510341`](https://doi.org/10.5281/zenodo.22510341) |
 | Archive status | GitHub release and paper-inclusive Zenodo version published; all three public assets downloaded and verified |
