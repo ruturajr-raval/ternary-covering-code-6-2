@@ -154,6 +154,10 @@ class PublicationMetadataTests(unittest.TestCase):
         )
         self.assertEqual(report["release_version_doi"], VERSION_DOI)
         self.assertEqual(report["release_concept_doi"], CONCEPT_DOI)
+        self.assertEqual(
+            report["source_archive"],
+            "dist/release/ternary-covering-code-6-2-source.tar.gz",
+        )
         expected_names = {
             "pdf": "ternary-covering-code-6-2-paper.pdf",
             "source": "ternary-covering-code-6-2-source.tar.gz",
@@ -198,6 +202,7 @@ class PublicationMetadataTests(unittest.TestCase):
         cff = (ROOT / "CITATION.cff").read_text(encoding="ascii")
         for text in (readme, publication, arxiv, cff):
             self.assertIn(VERSION_DOI, text)
+        self.assertIn(f'doi: "{VERSION_DOI}"', cff)
         for text in (readme, publication):
             self.assertIn(CONCEPT_DOI, text)
         self.assertGreaterEqual(cff.count(VERSION_DOI), 2)

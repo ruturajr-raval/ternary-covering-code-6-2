@@ -17,7 +17,7 @@
     "title": "Six Certified Branch Exclusions for the Ternary Covering Problem K_3(6,2)",
     "manuscript": "paper/main.tex",
     "submission_metadata": "paper/ARXIV_METADATA.md",
-    "source_archive": "dist/paper/ternary-covering-code-6-2-source.tar.gz",
+    "source_archive": "dist/release/ternary-covering-code-6-2-source.tar.gz",
     "release_tag": "v0.1.1",
     "release_commit": null,
     "github_release": "https://github.com/ruturajr-raval/ternary-covering-code-6-2/releases/tag/v0.1.1",
