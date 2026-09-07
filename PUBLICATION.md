@@ -10,10 +10,10 @@
 | ORCID | [0000-0003-4930-8981](https://orcid.org/0000-0003-4930-8981) |
 | Tagged release | [`v0.1.1`](https://github.com/ruturajr-raval/ternary-covering-code-6-2/releases/tag/v0.1.1) |
 | Release date | 2026-09-07 |
-| Release commit | Pending - no commit or tag was created while preparing this patch |
+| Release commit | `6824254e627fe4f4125423e8d1b0976f1f712d3b` |
 | Version DOI | [`10.5281/zenodo.22647771`](https://doi.org/10.5281/zenodo.22647771) |
 | Concept DOI | [`10.5281/zenodo.22510341`](https://doi.org/10.5281/zenodo.22510341) |
-| Archive status | Paper-inclusive Zenodo successor draft uploaded and verified; GitHub and Zenodo publication pending |
+| Archive status | GitHub release and paper-inclusive Zenodo version published; all three public assets downloaded and verified |
 | License | MIT for project-original material |
 
 ## Background
@@ -120,9 +120,9 @@ the asset records in `release.json`.
   `https://github.com/ruturajr-raval/ternary-covering-code-6-2/releases/tag/v0.1.1`
 - Version DOI: `10.5281/zenodo.22647771`
 - Stable concept DOI: `10.5281/zenodo.22510341`
-- Release commit: pending
-- Publication status: local assets prepared; no commit, tag, push, GitHub
-  release, or Zenodo upload was performed during preparation
+- Release commit: `6824254e627fe4f4125423e8d1b0976f1f712d3b`
+- Publication status: protected tag, GitHub release, and Zenodo version are
+  public; all three release assets were downloaded and verified
 
 Release assets:
 
@@ -140,9 +140,9 @@ SHA-256 7a89a7fde2b523e3a5bf65c12228d75cf710283feba6b99e86362021b56455c8
 The prior `v0.1.0` archive remains available at version DOI
 `10.5281/zenodo.22510342`. Its 63-file snapshot matched release commit
 `3dea87b7e2cd116fcd5fc05c63c21a71259b0923`. The paper-inclusive successor
-draft `10.5281/zenodo.22647771` contains the compiled paper, deterministic
-source archive, and checksum manifest listed above. All three files were
-verified against the local release set. The draft has not been published.
+`10.5281/zenodo.22647771` contains the compiled paper, deterministic source
+archive, and checksum manifest listed above. All three public files were
+downloaded and verified against the local release set.
 
 ## Provenance Boundary
 
@@ -157,7 +157,8 @@ as project-original artifacts.
 The mathematical release passed claim-scope, normalization, implementation,
 reproducibility, mutation, and manuscript review. Python and C++20
 independently verify the six exact certificate claims. The `v0.1.1` local
-paper and release assets are verified separately below before publication.
+paper and release assets were verified separately before publication and
+were downloaded again from both public services after publication.
 No external mathematical or peer review is claimed.
 
 ## Significance

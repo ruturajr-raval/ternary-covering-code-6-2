@@ -369,6 +369,8 @@ The public repository is
 [`ruturajr-raval/ternary-covering-code-6-2`](https://github.com/ruturajr-raval/ternary-covering-code-6-2).
 The paper-inclusive archival patch is identified as
 [`v0.1.1`](https://github.com/ruturajr-raval/ternary-covering-code-6-2/releases/tag/v0.1.1).
+Its release commit is
+`6824254e627fe4f4125423e8d1b0976f1f712d3b`.
 Its release set contains
 `ternary-covering-code-6-2-paper.pdf`,
 `ternary-covering-code-6-2-source.tar.gz`, and `SHA256SUMS`.

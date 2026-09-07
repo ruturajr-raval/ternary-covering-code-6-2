@@ -27,16 +27,16 @@
     "all_pdf_pages_reviewed": true,
     "release_asset_hashes_verified": true,
     "archival_patch_claim_scope_audited": true,
-    "clean_release_commit_ci_passes": false,
-    "hosted_pdf_reviewed": false,
-    "public_release_created": false,
+    "clean_release_commit_ci_passes": true,
+    "hosted_pdf_reviewed": true,
+    "public_release_created": true,
     "zenodo_version_doi_assigned": true,
-    "zenodo_record_updated_with_paper": false,
+    "zenodo_record_updated_with_paper": true,
     "external_review_completed": false
   },
-  "artifact_decision": "prepared",
-  "technical_report_decision": "ready",
+  "artifact_decision": "published",
+  "technical_report_decision": "published",
   "theorem_announcement_decision": "ready_for_scoped_result_announcement",
   "review_scope": "Independent repository audits covered claim wording, implementation consistency, reproducibility, and publication metadata. They are not represented as external mathematical peer review.",
-  "reason": "The scoped theorem and its exact verification remain accepted. Version 0.1.1 is a paper-inclusive archival and documentation patch. Local PDF, source-bundle, checksum, release-manifest, commit, tag, hosted CI, GitHub release, and Zenodo upload gates must pass before publication. The exact global value remains open, and no external mathematical review is claimed."
+  "reason": "The scoped theorem and its exact verification remain accepted. Version 0.1.1 is a paper-inclusive archival and documentation patch. The local PDF, source bundle, checksum, release manifest, immutable tag, hosted CI, GitHub release, Zenodo publication, and public download verification gates passed. The exact global value remains open, and no external mathematical review is claimed."
 }

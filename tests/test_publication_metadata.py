@@ -117,13 +117,13 @@ class PublicationMetadataTests(unittest.TestCase):
         self.assertTrue(
             gate["gates"]["production_generator_manifests_match"]
         )
-        self.assertFalse(gate["gates"]["public_release_created"])
+        self.assertTrue(gate["gates"]["public_release_created"])
         self.assertTrue(gate["gates"]["zenodo_version_doi_assigned"])
         self.assertTrue(
             gate["gates"]["archival_patch_claim_scope_audited"]
         )
-        self.assertEqual(gate["artifact_decision"], "prepared")
-        self.assertEqual(release["release_status"], "prepared")
+        self.assertEqual(gate["artifact_decision"], "published")
+        self.assertEqual(release["release_status"], "published")
         self.assertFalse(release["mathematical_claim_changed"])
         self.assertFalse(
             release["proof_certificates_data_or_computations_changed"]
@@ -146,7 +146,10 @@ class PublicationMetadataTests(unittest.TestCase):
         )
         report = release["technical_report"]
         self.assertEqual(report["release_tag"], "v0.1.1")
-        self.assertIsNone(report["release_commit"])
+        self.assertEqual(
+            report["release_commit"],
+            "6824254e627fe4f4125423e8d1b0976f1f712d3b",
+        )
         self.assertEqual(
             report["github_release"],
             "https://github.com/ruturajr-raval/"
@@ -189,8 +192,8 @@ class PublicationMetadataTests(unittest.TestCase):
         self.assertEqual(previous["version"], "0.1.0")
         self.assertEqual(previous["version_doi"], "10.5281/zenodo.22510342")
         self.assertEqual(previous["zenodo_archive_file_count"], 63)
-        self.assertFalse(release["verification"]["public_release_created"])
-        self.assertFalse(
+        self.assertTrue(release["verification"]["public_release_created"])
+        self.assertTrue(
             release["verification"]["zenodo_record_updated_with_paper"]
         )
 

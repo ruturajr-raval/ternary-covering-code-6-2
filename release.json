@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "version": "0.1.1",
-  "release_status": "prepared",
+  "release_status": "published",
   "release_date": "2026-09-07",
   "release_scope": "paper_inclusive_archival_documentation_patch",
   "artifact_status": "verified_six_branch_exclusion",
@@ -10,8 +10,8 @@
   "mathematical_claim_changed": false,
   "proof_certificates_data_or_computations_changed": false,
   "artifact_reproducibility_ready": true,
-  "artifact_release_ready": false,
-  "technical_report_release_status": "local_assets_verified",
+  "artifact_release_ready": true,
+  "technical_report_release_status": "published",
   "external_review_status": "No external mathematical review is claimed.",
   "technical_report": {
     "title": "Six Certified Branch Exclusions for the Ternary Covering Problem K_3(6,2)",
@@ -19,7 +19,7 @@
     "submission_metadata": "paper/ARXIV_METADATA.md",
     "source_archive": "dist/release/ternary-covering-code-6-2-source.tar.gz",
     "release_tag": "v0.1.1",
-    "release_commit": null,
+    "release_commit": "6824254e627fe4f4125423e8d1b0976f1f712d3b",
     "github_release": "https://github.com/ruturajr-raval/ternary-covering-code-6-2/releases/tag/v0.1.1",
     "release_version_doi": "10.5281/zenodo.22647771",
     "release_concept_doi": "10.5281/zenodo.22510341",
@@ -76,8 +76,8 @@
     "pdf_pages_reviewed": 8,
     "release_asset_hashes_verified": true,
     "release_checksum_manifest_verified": true,
-    "public_release_created": false,
-    "zenodo_record_updated_with_paper": false
+    "public_release_created": true,
+    "zenodo_record_updated_with_paper": true
   },
   "limitations": [
     "No 15-word or 16-word covering code is constructed.",
